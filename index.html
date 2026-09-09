@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0b8f55">
+    <meta name="description" content="LIFELINE — personal emergency and medical health companion">
+    <title>LIFELINE — Health Companion</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+    <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+</head>
+<body>
+    <div id="toast-root"></div>
+
+    <!-- LOADING -->
+    <div id="app-loading" class="app-loading">
+        <div class="loading-logo">+</div>
+        <div class="loading-title">LIFELINE</div>
+        <div class="loading-subtitle">Preparing your safe space…</div>
+    </div>
+
+    <!-- AUTH SCREEN -->
+    <section id="auth-screen" class="auth-screen hidden">
+        <div class="auth-brand-panel">
+            <div class="brand">
+                <div class="brand-icon">+</div>
+                <div><strong>LIFELINE</strong><span>Emergency health companion</span></div>
+            </div>
+            <div class="auth-hero">
+                <div class="eyebrow">PERSONAL HEALTH COMPANION</div>
+                <h1>Your health information, <span>ready when it matters.</span></h1>
+                <p>Keep your emergency details, medical history, records and first-aid guidance together in one secure place.</p>
+                <div class="feature-list">
+                    <div class="feature-item"><div>✓</div><span>Emergency-ready medical profile</span></div>
+                    <div class="feature-item"><div>✓</div><span>Private medical records vault</span></div>
+                    <div class="feature-item"><div>✓</div><span>AI + offline first-aid assistance</span></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="auth-panel">
+            <div class="auth-card">
+                <div class="mobile-brand"><div class="brand-icon">+</div><strong>LIFELINE</strong></div>
+                <div class="secure-label"><span></span>SECURE ACCOUNT</div>
+                <h2 id="auth-title">Welcome back</h2>
+                <p id="auth-subtitle">Sign in to access your health dashboard.</p>
+
+                <div class="auth-tabs">
+                    <button type="button" class="auth-tab active" data-auth-mode="login">Sign in</button>
+                    <button type="button" class="auth-tab" data-auth-mode="signup">Create account</button>
+                </div>
+
+                <form id="form-auth">
+                    <div id="auth-name-wrap" class="field hidden">
+                        <label>Full name</label>
+                        <input id="auth-name" type="text" placeholder="Your name" autocomplete="name">
+                    </div>
+                    <div class="field">
+                        <label>Email address</label>
+                        <input id="auth-email" type="email" placeholder="you@example.com" autocomplete="email" required>
+                    </div>
+                    <div class="field">
+                        <label>Password</label>
+                        <input id="auth-password" type="password" placeholder="Minimum 6 characters" autocomplete="current-password" minlength="6" required>
+                    </div>
+                    <button id="auth-submit" type="submit" class="btn btn-primary btn-full">Sign in <span>→</span></button>
+                </form>
+
+                <button id="forgot-password" type="button" class="text-button">Forgot password?</button>
+                <div class="divider"><span>OR</span></div>
+
+                <button id="google-login" type="button" class="btn btn-google btn-full"><span class="google-icon">G</span> Continue with Google</button>
+
+                <button id="phone-toggle" type="button" class="phone-toggle">Use phone number instead <span>→</span></button>
+
+                <div id="phone-auth" class="phone-auth hidden">
+                    <div class="field">
+                        <label>Phone number</label>
+                        <input id="auth-phone" type="tel" placeholder="+91 98765 43210" autocomplete="tel">
+                    </div>
+                    <div id="recaptcha-container"></div>
+                    <button id="send-otp" type="button" class="btn btn-secondary btn-full">Send OTP <span>→</span></button>
+                    <div id="otp-section" class="hidden">
+                        <div class="field">
+                            <label>Verification code</label>
+                            <input id="auth-otp" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="6-digit OTP">
+                        </div>
+                        <button id="verify-otp" type="button" class="btn btn-primary btn-full">Verify & continue <span>✓</span></button>
+                        <button id="change-phone" type="button" class="text-button">Use another number</button>
+                    </div>
+                </div>
+
+                <div id="auth-status" class="auth-status"></div>
+
+                <div class="auth-security">
+                    <span>🔒</span>
+                    <div>
+                        <strong>Your authentication is handled by Firebase</strong>
+                        <small>LIFELINE never stores your password or OTP.</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- MAIN APPLICATION -->
+    <section id="app" class="application hidden">
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <div class="brand-icon">+</div>
+                <div><strong>LIFELINE</strong><span>Health companion</span></div>
+            </div>
+            <div class="connection-card">
+                <span class="connection-dot"></span>
+                <div><strong id="connection-label">Online</strong><small id="connection-sub">Secure cloud</small></div>
+            </div>
+            <nav class="sidebar-nav">
+                <button class="nav-item active" data-view="overview"><span>⌂</span><div><strong>Overview</strong><small>Health dashboard</small></div></button>
+                <button class="nav-item" data-view="health"><span>♡</span><div><strong>My Health</strong><small>Personal details</small></div></button>
+                <button class="nav-item" data-view="records"><span>▣</span><div><strong>Medical Records</strong><small>Private health vault</small></div></button>
+                <button class="nav-item" data-view="emergency"><span>✚</span><div><strong>Emergency Card</strong><small>Critical information</small></div></button>
+                <button class="nav-item" data-view="triage"><span>♥</span><div><strong>Emergency Triage</strong><small>Immediate guidance</small></div></button>
+                <button class="nav-item" data-view="assistant"><span>✦</span><div><strong>AI Assistant</strong><small>Health guidance</small></div></button>
+                <button class="nav-item" data-view="firstaid"><span>🩹</span><div><strong>First Aid</strong><small>Quick guidance</small></div></button>
+            </nav>
+            <div class="sidebar-emergency">
+                <div class="emergency-icon">!</div>
+                <strong>Need urgent help?</strong>
+                <p>Call emergency services immediately.</p>
+                <div class="emergency-buttons">
+                    <a href="tel:112">112</a>
+                    <a href="tel:108">108</a>
+                </div>
+                <button id="btn-sos-emergency" class="btn btn-danger" style="width:100%;margin-top:10px;padding:12px;font-weight:800;border:none;border-radius:12px;color:white;background:linear-gradient(135deg,#d92d3d,#b71c1c);">
+                    🚨 SOS Emergency
+                </button>
+            </div>
+            <div class="sidebar-account">
+                <div id="user-avatar" class="avatar">U</div>
+                <div class="account-info">
+                    <strong id="side-user-name">User</strong>
+                    <small id="side-user-meta">Signed in</small>
+                </div>
+                <button id="btn-logout" class="logout-button" title="Sign out">🚪</button>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="topbar">
+                <div>
+                    <div class="breadcrumb">LIFELINE <span>/</span> <span id="page-title">Overview</span></div>
+                    <h1 id="page-heading">Good to see you.</h1>
+                </div>
+                <div class="topbar-actions">
+                    <button id="btn-mode-toggle" class="online-pill" type="button"><span></span><span id="mode-label">Online</span></button>
+                    <button id="top-avatar" class="avatar" type="button">U</button>
+                </div>
+            </header>
+
+            <!-- OVERVIEW -->
+            <section id="view-overview" class="view active">
+                <div class="hero-card">
+                    <div>
+                        <span class="eyebrow">YOUR HEALTH, READY</span>
+                        <h2 id="welcome-heading">Your health profile is ready.</h2>
+                        <p>Keep your most important medical information available when every second matters.</p>
+                        <button class="btn btn-primary" data-view="health">Complete health profile <span>→</span></button>
+                    </div>
+                    <div class="completion-ring"><strong id="profile-percent">0%</strong><small>profile</small></div>
+                </div>
+                <div class="stat-grid">
+                    <div class="stat-card"><div class="stat-icon green">♥</div><div><small>Blood group</small><strong id="stat-blood">Not added</strong></div></div>
+                    <div class="stat-card"><div class="stat-icon blue">▣</div><div><small>Medical records</small><strong id="stat-records">0 records</strong></div></div>
+                    <div class="stat-card"><div class="stat-icon orange">✚</div><div><small>Emergency contact</small><strong id="stat-contact">Not added</strong></div></div>
+                </div>
+                <div class="section-heading"><div><span class="eyebrow">QUICK ACTIONS</span><h2>What do you need?</h2></div></div>
+                <div class="quick-grid">
+                    <button class="quick-card" data-view="triage"><div class="quick-icon danger">♥</div><div><strong>Emergency triage</strong><small>Get structured guidance for acute symptoms.</small></div><span>→</span></button>
+                    <button class="quick-card" data-view="firstaid"><div class="quick-icon">🩹</div><div><strong>First Aid Guide</strong><small>Quick step-by-step first aid help.</small></div><span>→</span></button>
+                    <button class="quick-card" data-view="records"><div class="quick-icon">▣</div><div><strong>Medical records</strong><small>Store reports, prescriptions and documents.</small></div><span>→</span></button>
+                    <button class="quick-card" data-view="emergency"><div class="quick-icon emergency">✚</div><div><strong>Emergency card</strong><small>Show your critical health information.</small></div><span>→</span></button>
+                    <button class="quick-card" data-view="assistant"><div class="quick-icon purple">✦</div><div><strong>AI assistant</strong><small>Ask a first-aid or health question.</small></div><span>→</span></button>
+                </div>
+                <div class="trust-banner"><div class="trust-icon">✓</div><div><strong>Built for emergency readiness</strong><p>LIFELINE combines structured triage, emergency contacts, medical records and health information in one place.</p></div></div>
+            </section>
+
+            <!-- HEALTH PROFILE -->
+            <section id="view-health" class="view hidden">
+                <div class="page-intro"><span class="eyebrow">MY HEALTH</span><h2>Your health details</h2><p>Add the information that emergency responders may need.</p></div>
+                <form id="form-profile" class="form-card">
+                    <div class="form-section">
+                        <div class="form-section-title"><span>01</span><div><h3>Personal information</h3><p>Basic information about you.</p></div></div>
+                        <div class="form-grid">
+                            <div class="field"><label>Full name</label><input id="prof-name" type="text" placeholder="Your full name"></div>
+                            <div class="field"><label>Age</label><input id="prof-age" type="number" min="0" max="120" placeholder="28"></div>
+                            <div class="field"><label>Blood group</label>
+                                <select id="prof-blood"><option value="">Select blood group</option>
+                                    <option>A+</option><option>A-</option><option>B+</option><option>B-</option>
+                                    <option>O+</option><option>O-</option><option>AB+</option><option>AB-</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-section">
+                        <div class="form-section-title"><span>02</span><div><h3>Emergency contact</h3><p>Someone we can contact in an emergency.</p></div></div>
+                        <div class="form-grid">
+                            <div class="field"><label>Contact name</label><input id="prof-contact-name" type="text" placeholder="Rahul (Brother)"></div>
+                            <div class="field"><label>Contact phone</label><input id="prof-contact-phone" type="tel" placeholder="+91 98765 43210"></div>
+                        </div>
+                    </div>
+                    <div class="form-section">
+                        <div class="form-section-title"><span>03</span><div><h3>Medical information</h3><p>Information that can help responders.</p></div></div>
+                        <div class="form-grid one">
+                            <div class="field"><label>Allergies / Conditions</label><textarea id="prof-conditions" rows="3" placeholder="Penicillin, peanuts, latex, or None"></textarea></div>
+                        </div>
+                    </div>
+                    <div id="profile-status" class="form-status"></div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-light" data-view="overview">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Save health profile <span>✓</span></button>
+                    </div>
+                </form>
+            </section>
+
+            <!-- RECORDS -->
+            <section id="view-records" class="view hidden">
+                <div class="page-intro record-intro">
+                    <div><span class="eyebrow">PRIVATE HEALTH VAULT</span><h2>Medical records</h2><p>Keep prescriptions, reports, scans and other important documents organized.</p></div>
+                    <button id="btn-add-record" class="btn btn-primary" type="button">+ Add medical record</button>
+                </div>
+                <div class="record-summary">
+                    <div class="record-summary-icon">▣</div>
+                    <div><strong>Your medical history</strong><p><span id="records-total">0</span> records saved</p></div>
+                    <div class="record-summary-number"><strong id="records-number">0</strong></div>
+                </div>
+                <div id="records-empty" class="empty-records">
+                    <div class="empty-icon">▣</div>
+                    <h3>No medical records yet</h3>
+                    <p>Add a prescription, laboratory report, scan, diagnosis or other important document.</p>
+                    <button class="btn btn-primary" id="btn-empty-add-record" type="button">Add your first record</button>
+                </div>
+                <div id="records-list" class="records-list"></div>
+            </section>
+
+            <!-- EMERGENCY CARD -->
+            <section id="view-emergency" class="view hidden">
+                <div class="page-intro"><span class="eyebrow">EMERGENCY CARD</span><h2>Critical information</h2><p>A simple view designed for quick access.</p></div>
+                <div class="emergency-card">
+                    <div class="emergency-card-top">
+                        <div><span>LIFELINE EMERGENCY PROFILE</span><h2 id="em-name">Your name</h2><p>Age: <strong id="em-age">—</strong></p></div>
+                        <div id="em-blood" class="blood-badge">—</div>
+                    </div>
+                    <div class="emergency-grid">
+                        <div><small>ALLERGIES</small><strong id="em-conditions">Not added</strong></div>
+                        <div><small>EMERGENCY CONTACT</small><strong id="em-contact">Not added</strong><span id="em-phone">—</span></div>
+                        <div class="wide"><small>MEDICAL RECORDS</small><strong id="em-records">0 records</strong></div>
+                    </div>
+                    <div class="emergency-card-actions">
+                        <a id="call-contact" class="btn btn-primary" href="#">☎ Call emergency contact</a>
+                        <button class="btn btn-light" data-view="health">Edit details</button>
+                    </div>
+                </div>
+                <div class="emergency-warning"><strong>Important</strong><p>LIFELINE does not replace emergency services or professional medical care. Call 112/108 immediately when appropriate.</p></div>
+            </section>
+
+            <!-- TRIAGE -->
+            <section id="view-triage" class="view hidden">
+                <div class="page-intro"><span class="eyebrow">EMERGENCY TRIAGE</span><h2>Let's assess this.</h2><p>Describe what is happening and LIFELINE will guide you through a short structured check.</p></div>
+
+                <div id="triage-start-card" class="triage-card">
+                    <div class="triage-alert"><span>!</span><div><strong>If someone is in immediate danger</strong><p>Call 112 or 108 first.</p></div></div>
+                    <div class="field"><label>What is happening?</label><textarea id="input-complaint" rows="4" placeholder="e.g. sudden chest pressure, fainting, heavy bleeding..."></textarea></div>
+                    <button id="btn-start-triage" class="btn btn-primary btn-full" type="button">Start assessment <span>→</span></button>
+                    <div class="protocol-grid">
+                        <button data-proto="chest_pain" class="protocol"><span>♥</span>Chest discomfort</button>
+                        <button data-proto="unconsciousness_adult" class="protocol"><span>⚡</span>Fainting / seizure</button>
+                        <button data-proto="bleeding" class="protocol"><span>+</span>Severe bleeding</button>
+                        <button data-proto="pregnancy" class="protocol"><span>○</span>Pregnancy</button>
+                        <button data-proto="menstrual" class="protocol"><span>○</span>Heavy period</button>
+                        <button data-proto="general" class="protocol"><span>+</span>Something else</button>
+                    </div>
+                </div>
+
+                <div id="triage-question-card" class="triage-card hidden">
+                    <div class="triage-progress"><span id="badge-proto-name">Triage</span><span id="question-progress">Assessment</span></div>
+                    <h3 id="triage-question-text"></h3>
+                    <div id="triage-options-list" class="triage-options"></div>
+                    <button id="btn-next-question" class="btn btn-primary btn-full" type="button">Continue <span>→</span></button>
+                </div>
+
+                <div id="triage-result-card" class="triage-card hidden">
+                    <div id="result-status-banner" class="result-banner">
+                        <div><small>ASSESSMENT RESULT</small><h2 id="result-title"></h2></div>
+                        <span id="result-urgency"></span>
+                    </div>
+                    <p id="result-message" class="result-message"></p>
+                    <div class="dispatcher-box"><small>READ THIS TO THE DISPATCHER</small><p id="txt-dispatch-verbal"></p></div>
+                    <div id="result-actions-list" class="result-actions"></div>
+                    <div class="form-actions">
+                        <a id="btn-send-sms-sos" class="btn btn-danger" href="#">Send SMS SOS</a>
+                        <button id="btn-reset-triage" class="btn btn-light" type="button">New assessment</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- AI ASSISTANT -->
+            <section id="view-assistant" class="view hidden">
+                <div class="page-intro"><span class="eyebrow">AI MEDICAL ASSISTANT</span><h2>Ask LIFELINE</h2><p>Get first-aid and health information with clear safety guidance.</p></div>
+                <div class="chat-card">
+                    <div class="chat-header">
+                        <div><strong>LIFELINE Assistant</strong><span>● Online</span></div>
+                        <div style="display:flex;gap:8px;">
+                            <button id="btn-stop-speaking" class="text-button" type="button" title="Stop Speaking">🔇</button>
+                            <button id="btn-clear-chat" class="text-button" type="button">Clear</button>
+                        </div>
+                    </div>
+                    <div id="chat-messages-container" class="chat-messages">
+                        <div class="chat-message assistant">
+                            <div class="chat-avatar">+</div>
+                            <div class="chat-content"><strong>LIFELINE</strong><p>Hi! I can help with first-aid questions and general health information. What would you like to know?</p></div>
+                        </div>
+                    </div>
+                    <div class="chat-suggestions">
+                        <button class="chat-chip" data-msg="What should I do for a burn?">Burn first aid</button>
+                        <button class="chat-chip" data-msg="What are signs of a stroke?">Stroke signs</button>
+                        <button class="chat-chip" data-msg="What should I do if someone is choking?">Choking</button>
+                        <button class="chat-chip" data-msg="What are signs of dehydration?">Dehydration</button>
+                    </div>
+                    <form id="form-chat" class="chat-input">
+                        <button id="btn-voice-input" type="button" class="btn btn-light" title="Voice Input">🎤</button>
+                        <button id="btn-camera-input" type="button" class="btn btn-light" title="Take Photo">📷</button>
+                        <input id="input-chat" type="text" placeholder="Ask a health question..." autocomplete="off" style="flex:1;min-width:120px;">
+                        <button type="submit" class="btn btn-primary">Send</button>
+                    </form>
+                </div>
+            </section>
+
+            <!-- FIRST AID GUIDE -->
+            <section id="view-firstaid" class="view hidden">
+                <div class="page-intro">
+                    <span class="eyebrow">FIRST AID GUIDE</span>
+                    <h2>Instant Help</h2>
+                    <p>Quick step-by-step first aid guidance for common emergencies.</p>
+                </div>
+
+                <div class="firstaid-container">
+                    <div class="firstaid-language">
+                        <label for="firstaid-language">Select Language:</label>
+                        <select id="firstaid-language">
+                            <option value="English">English</option>
+                            <option value="हिंदी">हिंदी</option>
+                            <option value="मराठी">मराठी</option>
+                        </select>
+                    </div>
+
+                    <div id="firstaid-grid" class="firstaid-grid"></div>
+                </div>
+
+                <!-- First Aid Detail Modal -->
+                <div id="firstaid-detail" class="firstaid-detail hidden">
+                    <div class="firstaid-detail-content">
+                        <button id="firstaid-close" class="firstaid-close">×</button>
+                        <h2 id="firstaid-detail-title"></h2>
+                        <img id="firstaid-detail-image" src="" alt="First aid illustration">
+                        <div id="firstaid-detail-instructions" class="firstaid-instructions"></div>
+                        <button id="firstaid-listen" class="btn btn-primary" style="width:100%;margin-top:10px;">🔊 Listen</button>
+                        <button id="firstaid-back" class="btn btn-light" style="width:100%;margin-top:8px;">← Back to Guide</button>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- MOBILE NAV with Logout -->
+        <nav class="mobile-nav mobile-nav-with-logout">
+            <button class="mobile-nav-item active" data-view="overview">
+                <span>🏠</span>
+                <small>Home</small>
+            </button>
+            <button class="mobile-nav-item" data-view="health">
+                <span>❤️</span>
+                <small>Health</small>
+            </button>
+            <button class="mobile-nav-item" data-view="records">
+                <span>📄</span>
+                <small>Records</small>
+            </button>
+            <button class="mobile-nav-item" data-view="emergency">
+                <span>🔴</span>
+                <small>Emergency</small>
+            </button>
+            <button class="mobile-nav-item" data-view="assistant">
+                <span>🤖</span>
+                <small>AI</small>
+            </button>
+            <button class="mobile-nav-item" data-view="firstaid">
+                <span>🩹</span>
+                <small>First Aid</small>
+            </button>
+            <button id="btn-sos-mobile" class="mobile-nav-item sos-btn">
+                <span>🚨</span>
+                <small>SOS</small>
+            </button>
+            <button id="btn-logout-mobile" class="mobile-nav-item logout-btn">
+                <span>🚪</span>
+                <small>Logout</small>
+            </button>
+        </nav>
+    </section>
+
+    <!-- RECORD MODAL -->
+    <div id="record-modal" class="modal hidden">
+        <div class="modal-backdrop"></div>
+        <div class="modal-card">
+            <div class="modal-header">
+                <div><span class="eyebrow">MEDICAL RECORD</span><h2>Add a record</h2></div>
+                <button id="close-record-modal" class="modal-close" type="button">×</button>
+            </div>
+            <form id="record-form">
+                <div class="field"><label>Record title</label><input id="record-title" type="text" placeholder="e.g. Blood test — March 2026" required></div>
+                <div class="form-grid">
+                    <div class="field"><label>Record type</label>
+                        <select id="record-type">
+                            <option value="Lab Report">Lab Report</option>
+                            <option value="Prescription">Prescription</option>
+                            <option value="Scan / Imaging">Scan / Imaging</option>
+                            <option value="Diagnosis">Diagnosis</option>
+                            <option value="Discharge Summary">Discharge Summary</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="field"><label>Date</label><input id="record-date" type="date"></div>
+                </div>
+                <div class="form-grid">
+                    <div class="field"><label>Doctor / provider</label><input id="record-provider" type="text" placeholder="Dr. Sharma"></div>
+                    <div class="field"><label>Hospital / facility</label><input id="record-facility" type="text" placeholder="AIIMS / Apollo"></div>
+                </div>
+                <div class="field"><label>Notes</label><textarea id="record-notes" rows="3" placeholder="Anything important about this record..."></textarea></div>
+                <div class="field">
+                    <label>Attach Document</label>
+                    <input id="record-file" type="file" accept=".pdf,.png,.jpg,.jpeg,.doc,.docx,.txt">
+                    <small class="field-help">Upload medical documents (PDF, images, or text files). The AI will analyze them.</small>
+                </div>
+                <div class="form-actions">
+                    <button type="button" id="cancel-record" class="btn btn-light">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save medical record <span>✓</span></button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="config.js"></script>
+    <script src="firebase-service.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
