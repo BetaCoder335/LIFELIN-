@@ -100,6 +100,7 @@
             "auth/invalid-credential": "Incorrect email or password. If new, click 'Create account' above.",
             "auth/email-already-in-use": "An account already exists with this email. Click 'Sign in' above.",
             "auth/weak-password": "Use a stronger password (6+ characters).",
+            "auth/operation-not-allowed": "This sign-in method is disabled in Firebase Console -> Auth -> Sign-in Method. You can enable it or click 'Continue as Guest' below.",
             "auth/popup-closed-by-user": "Google sign-in was cancelled.",
             "auth/popup-blocked": "Popups blocked. Allow popups for this site or use email login.",
             "auth/unauthorized-domain": "Domain not authorized in Firebase Console. You can sign in with Email or click 'Continue as Guest' below.",
