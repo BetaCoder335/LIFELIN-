@@ -1539,7 +1539,7 @@ STRICT JSON OUTPUT ONLY:
   ]
 }`;
 
-        const models = ["qwen/qwen3.8-27b", "qwen/qwen3.6-27b", "openai/gpt-oss-120b"];
+        const models = ["openai/gpt-oss-120b", "openai/gpt-oss-20b", "qwen/qwen3.6-27b", "qwen/qwen3.8-27b"];
         for (const model of models) {
             try {
                 const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
@@ -1551,7 +1551,7 @@ STRICT JSON OUTPUT ONLY:
                     body: JSON.stringify({
                         model: model,
                         messages: [
-                            { role: "system", content: "You are a clinical triage AI. Output strict valid JSON only, no markdown formatting." },
+                            { role: "system", content: "You are a clinical triage AI. Output strict valid JSON only, no thoughts, no think tags, no markdown backticks." },
                             { role: "user", content: prompt }
                         ],
                         temperature: 0.1,
@@ -1560,8 +1560,10 @@ STRICT JSON OUTPUT ONLY:
                 });
                 if (res.ok) {
                     const data = await res.json();
-                    const text = data.choices?.[0]?.message?.content || "";
-                    const clean = text.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "").trim();
+                    let text = data.choices?.[0]?.message?.content || "";
+                    text = text.replace(/<think>[\s\S]*?<\/think>/gi, "").replace(/<think>[\s\S]*/gi, "");
+                    const jsonMatch = text.match(/\{[\s\S]*\}/);
+                    const clean = jsonMatch ? jsonMatch[0] : text.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "").trim();
                     const json = JSON.parse(clean);
                     if (json.questions && json.questions.length) return json;
                 }

@@ -585,12 +585,28 @@
     // =========================================================
     // AI CHAT
     // =========================================================
+    function cleanAIResponse(raw) {
+        if (!raw) return "";
+        let text = String(raw);
+        // Strip completed <think>...</think> tags
+        text = text.replace(/<think>[\s\S]*?<\/think>/gi, "");
+        // Strip unclosed <think>... tags (if truncated)
+        text = text.replace(/<think>[\s\S]*/gi, "");
+        // Strip any "Thinking Process:" or "Thought Process:" headers/blocks
+        text = text.replace(/^(?:Thinking|Thought)\s*Process:[\s\S]*?(?=\n\n|\n[*-•]|\n\d+\.)/gim, "");
+        // Strip any leading numbered reasoning sections like "1. Analyze the Request: ..."
+        text = text.replace(/^(?:\d+\.\s*(?:Analyze|Persona|Constraints|Draft|Determine)[\s\S]*?)+/gim, "");
+        return text.trim();
+    }
+
     function formatChatMessage(text) {
         if (!text) return "";
-        let clean = escapeHtml(text);
+        let clean = cleanAIResponse(text);
+        clean = escapeHtml(clean);
         clean = clean.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
         clean = clean.replace(/###+\s*(.*?)(?:\n|$)/g, "<strong>$1</strong><br>");
         clean = clean.replace(/(?:^|\n)[•*-]\s*/g, "<br>• ");
+        clean = clean.replace(/(?:^|\n)(\d+)\.\s*/g, "<br><strong>$1.</strong> ");
         clean = clean.replace(/\n/g, "<br>");
         clean = clean.replace(/(<br>\s*){3,}/g, "<br><br>");
         return clean.replace(/^<br>/, "").trim();
@@ -599,10 +615,13 @@
     function appendChat(text, role) {
         const wrap = $("chat-messages-container");
         if (!wrap) return;
+        const formatted = formatChatMessage(text);
+        if (!formatted && role === "assistant") return;
+
         const el = document.createElement("div");
         el.className = `chat-message ${role}`;
         el.innerHTML = `<div class="chat-avatar">${role === "user" ? "U" : "+"}</div><div class="chat-content"><strong>${role === "user" ? "You" : "LIFELINE"}</strong><p></p></div>`;
-        el.querySelector("p").innerHTML = formatChatMessage(text);
+        el.querySelector("p").innerHTML = formatted;
         wrap.appendChild(el);
         wrap.scrollTop = wrap.scrollHeight;
 
@@ -625,7 +644,7 @@
                 el.appendChild(sosDiv);
             }
 
-            speakText(text);
+            speakText(cleanAIResponse(text));
         }
     }
 
@@ -638,7 +657,8 @@
 CRITICAL RULES:
 - Output ONLY 3 to 4 short, single-sentence bullet points.
 - Maximum 40 words total.
-- No greetings, no introductions, no section headers, no closing text.
+- No greetings, no intros, no section headers, no closing text.
+- Do NOT output internal thoughts, reasoning steps, or <think> tags.
 - If emergency, first bullet MUST be: "🚨 Call 112 or 108 immediately."
 - Use plain bullet symbol: •`;
 
@@ -661,18 +681,20 @@ CRITICAL RULES:
                         model: model,
                         messages: messages,
                         temperature: 0.1,
-                        max_tokens: 150
+                        max_tokens: 350
                     })
                 });
                 if (res.ok) {
                     const json = await res.json();
                     let content = json.choices?.[0]?.message?.content;
                     if (content) {
+                        content = cleanAIResponse(content);
                         try {
                             const parsed = JSON.parse(content.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, ""));
                             content = parsed.reply || parsed.answer || parsed.response || content;
+                            content = cleanAIResponse(content);
                         } catch {}
-                        return content.trim();
+                        if (content) return content.trim();
                     }
                 }
             } catch (err) {
