@@ -272,19 +272,19 @@
                 <div id="triage-start-card" class="triage-card">
                     <div class="triage-alert"><span>!</span><div><strong>Immediate Life Threat?</strong><p>Call 112 or 108 immediately if the patient is unresponsive, not breathing, or in extreme agony.</p></div></div>
                     <div class="field"><label>Describe what is happening</label><textarea id="input-complaint" rows="3" placeholder="e.g. snake bite on foot, sudden chest heaviness, severe breathing difficulty, child has high fever..."></textarea></div>
-                    <button id="btn-start-triage" class="btn btn-primary btn-full" type="button">Start Intelligent Triage <span>→</span></button>
+                    <button id="btn-start-triage" class="btn btn-primary btn-full" type="button" onclick="window.LifelineTriage?.start(document.getElementById('input-complaint')?.value)">Start Intelligent Triage <span>→</span></button>
                     
                     <div style="margin-top: 18px; margin-bottom: 8px; font-size: 0.85rem; font-weight: 600; color: #555; text-transform: uppercase; letter-spacing: 0.5px;">Or Select a Standard Protocol:</div>
                     <div class="protocol-grid">
-                        <button data-proto="chest_pain" class="protocol"><span>♥</span>Chest Discomfort</button>
-                        <button data-proto="stroke" class="protocol"><span>🧠</span>Stroke / Weakness</button>
-                        <button data-proto="unconsciousness_adult" class="protocol"><span>⚡</span>Fainting / Seizure</button>
-                        <button data-proto="bleeding" class="protocol"><span>🩹</span>Severe Bleeding</button>
-                        <button data-proto="breathing_dehydration" class="protocol"><span>🫁</span>Breathing / Dehydration</button>
-                        <button data-proto="headache" class="protocol"><span>🤕</span>Severe Headache</button>
-                        <button data-proto="pregnancy" class="protocol"><span>🤰</span>Pregnancy Emergency</button>
-                        <button data-proto="menstrual" class="protocol"><span>🩸</span>Heavy Period</button>
-                        <button data-proto="general" class="protocol"><span>✚</span>General Assessment</button>
+                        <button data-proto="chest_pain" onclick="window.LifelineTriage?.start('', 'chest_pain')" class="protocol"><span>♥</span>Chest Discomfort</button>
+                        <button data-proto="stroke" onclick="window.LifelineTriage?.start('', 'stroke')" class="protocol"><span>🧠</span>Stroke / Weakness</button>
+                        <button data-proto="unconsciousness_adult" onclick="window.LifelineTriage?.start('', 'unconsciousness_adult')" class="protocol"><span>⚡</span>Fainting / Seizure</button>
+                        <button data-proto="bleeding" onclick="window.LifelineTriage?.start('', 'bleeding')" class="protocol"><span>🩹</span>Severe Bleeding</button>
+                        <button data-proto="breathing_dehydration" onclick="window.LifelineTriage?.start('', 'breathing_dehydration')" class="protocol"><span>🫁</span>Breathing / Dehydration</button>
+                        <button data-proto="headache" onclick="window.LifelineTriage?.start('', 'headache')" class="protocol"><span>🤕</span>Severe Headache</button>
+                        <button data-proto="pregnancy" onclick="window.LifelineTriage?.start('', 'pregnancy')" class="protocol"><span>🤰</span>Pregnancy Emergency</button>
+                        <button data-proto="menstrual" onclick="window.LifelineTriage?.start('', 'menstrual')" class="protocol"><span>🩸</span>Heavy Period</button>
+                        <button data-proto="general" onclick="window.LifelineTriage?.start('', 'general')" class="protocol"><span>✚</span>General Assessment</button>
                     </div>
                 </div>
 
@@ -293,8 +293,8 @@
                     <h3 id="triage-question-text"></h3>
                     <div id="triage-options-list" class="triage-options"></div>
                     <div class="form-actions" style="margin-top: 20px;">
-                        <button id="btn-back-question" class="btn btn-light" type="button">← Back</button>
-                        <button id="btn-next-question" class="btn btn-primary" type="button" style="flex: 1;">Continue <span>→</span></button>
+                        <button id="btn-back-question" class="btn btn-light" type="button" onclick="window.LifelineTriage?.back()">← Back</button>
+                        <button id="btn-next-question" class="btn btn-primary" type="button" style="flex: 1;" onclick="window.LifelineTriage?.submit()">Continue <span>→</span></button>
                     </div>
                 </div>
 
@@ -309,7 +309,7 @@
                     <div class="form-actions" style="margin-top: 20px; display: flex; flex-wrap: wrap; gap: 10px;">
                         <a id="btn-call-112-triage" class="btn btn-danger" href="tel:112" style="flex: 1; min-width: 140px; text-align: center;">🚨 Call 112 / 108</a>
                         <a id="btn-send-sms-sos" class="btn btn-light" href="#" style="flex: 1; min-width: 140px; text-align: center;">💬 Send SMS SOS</a>
-                        <button id="btn-reset-triage" class="btn btn-light" type="button" style="width: 100%;">🔄 New Assessment</button>
+                        <button id="btn-reset-triage" class="btn btn-light" type="button" style="width: 100%;" onclick="window.LifelineTriage?.reset()">🔄 New Assessment</button>
                     </div>
                 </div>
             </section>
@@ -459,9 +459,9 @@
         </div>
     </div>
 
-    <script src="config.js?v=3"></script>
-    <script src="triage-protocols.js?v=3"></script>
-    <script src="firebase-service.js?v=3"></script>
-    <script src="app.js?v=3"></script>
+    <script src="config.js?v=4"></script>
+    <script src="triage-protocols.js?v=4"></script>
+    <script src="firebase-service.js?v=4"></script>
+    <script src="app.js?v=4"></script>
 </body>
 </html>

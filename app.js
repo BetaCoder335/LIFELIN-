@@ -1047,6 +1047,13 @@ STRICT JSON OUTPUT FORMAT ONLY:
         if ($("input-complaint")) $("input-complaint").value = "";
     }
 
+    window.LifelineTriage = {
+        start: startTriage,
+        submit: submitAnswer,
+        back: handleQuestionBack,
+        reset: resetTriage
+    };
+
     // =========================================================
     // AI CHAT
     // =========================================================
