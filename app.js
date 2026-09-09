@@ -585,13 +585,24 @@
     // =========================================================
     // AI CHAT
     // =========================================================
+    function formatChatMessage(text) {
+        if (!text) return "";
+        let clean = escapeHtml(text);
+        clean = clean.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
+        clean = clean.replace(/###+\s*(.*?)(?:\n|$)/g, "<strong>$1</strong><br>");
+        clean = clean.replace(/(?:^|\n)[•*-]\s*/g, "<br>• ");
+        clean = clean.replace(/\n/g, "<br>");
+        clean = clean.replace(/(<br>\s*){3,}/g, "<br><br>");
+        return clean.replace(/^<br>/, "").trim();
+    }
+
     function appendChat(text, role) {
         const wrap = $("chat-messages-container");
         if (!wrap) return;
         const el = document.createElement("div");
         el.className = `chat-message ${role}`;
         el.innerHTML = `<div class="chat-avatar">${role === "user" ? "U" : "+"}</div><div class="chat-content"><strong>${role === "user" ? "You" : "LIFELINE"}</strong><p></p></div>`;
-        el.querySelector("p").textContent = text;
+        el.querySelector("p").innerHTML = formatChatMessage(text);
         wrap.appendChild(el);
         wrap.scrollTop = wrap.scrollHeight;
 
@@ -622,25 +633,22 @@
         const groqKey = window.LifelineConfig?.GROQ_API_KEY || (window.LifelineConfig?.GROQ_KEY_ENC ? atob(window.LifelineConfig.GROQ_KEY_ENC) : "");
         if (!groqKey) throw new Error("No Groq API key configured.");
 
-        const systemPrompt = `You are LIFELINE AI, a rapid emergency and medical companion for India.
+        const systemPrompt = `You are LIFELINE AI, a rapid emergency health companion for India.
 
-STRICT RESPONSE RULES:
-1. Keep answers PRECISE, SHORT, and STRAIGHT TO THE POINT.
-2. Use short, simple sentences (maximum 3 to 5 bullet points).
-3. If emergency red flags are present (e.g., chest pain, snake bite, severe bleeding, stroke, difficulty breathing):
-   - State "🚨 Call 112 or 108 immediately." as the first step.
-   - List 2 to 4 urgent, direct first-aid action steps.
-   - Mention what NOT to do in one quick bullet.
-4. For non-emergencies, provide 2 to 3 concise, practical next steps.
-5. Avoid long medical explanations or conversational fluff.`;
+CRITICAL RULES:
+- Output ONLY 3 to 4 short, single-sentence bullet points.
+- Maximum 40 words total.
+- No greetings, no introductions, no section headers, no closing text.
+- If emergency, first bullet MUST be: "🚨 Call 112 or 108 immediately."
+- Use plain bullet symbol: •`;
 
         const messages = [
             { role: "system", content: systemPrompt },
-            ...(history || []).slice(-6).map(h => ({ role: h.role, content: h.content })),
+            ...(history || []).slice(-4).map(h => ({ role: h.role, content: h.content })),
             { role: "user", content: userMessage }
         ];
 
-        const models = ["qwen/qwen3.8-27b", "qwen/qwen3.6-27b", "openai/gpt-oss-120b"];
+        const models = ["openai/gpt-oss-120b", "openai/gpt-oss-20b", "qwen/qwen3.6-27b", "qwen/qwen3.8-27b"];
         for (const model of models) {
             try {
                 const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
@@ -652,8 +660,8 @@ STRICT RESPONSE RULES:
                     body: JSON.stringify({
                         model: model,
                         messages: messages,
-                        temperature: 0.3,
-                        max_tokens: 1024
+                        temperature: 0.1,
+                        max_tokens: 150
                     })
                 });
                 if (res.ok) {
@@ -664,7 +672,7 @@ STRICT RESPONSE RULES:
                             const parsed = JSON.parse(content.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, ""));
                             content = parsed.reply || parsed.answer || parsed.response || content;
                         } catch {}
-                        return content;
+                        return content.trim();
                     }
                 }
             } catch (err) {
