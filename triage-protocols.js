@@ -1,277 +1,14 @@
 "use strict";
 
+// =========================================================
+// LIFELINE CLINICAL TRIAGE PROTOCOLS (OFFLINE-FIRST ENGINE)
+// =========================================================
 window.LifelineTriageData = {
   "protocols": {
-    "bleeding": {
-      "protocol_id": "bleeding",
-      "protocol_name": "Cuts, Wounds & Bleeding",
-      "version": "2.1_CALM",
-      "trigger_keywords": [
-        "blood",
-        "bleeding",
-        "khoon",
-        "wound",
-        "cut",
-        "gash"
-      ],
-      "entry_question": "bld_001",
-      "questions": [
-        {
-          "id": "bld_001",
-          "text": "How fast is the blood coming from the cut or wound?",
-          "type": "single_choice",
-          "required": true,
-          "options": [
-            {
-              "id": "slow",
-              "label": "A slow trickle or light ooze",
-              "next": "bld_003"
-            },
-            {
-              "id": "steady",
-              "label": "Flowing steadily like water from a tap",
-              "next": "bld_002"
-            },
-            {
-              "id": "fast",
-              "label": "Spurting or pouring out very quickly",
-              "next": "BLD_RED_HEMORRHAGE"
-            }
-          ]
-        },
-        {
-          "id": "bld_002",
-          "text": "If you hold firm pressure on the wound with a clean towel for 5 to 10 minutes, what happens?",
-          "type": "single_choice",
-          "required": true,
-          "options": [
-            {
-              "id": "slows",
-              "label": "The bleeding slows down noticeably or stops",
-              "next": "bld_003"
-            },
-            {
-              "id": "wont_stop",
-              "label": "It keeps soaking straight through the towel without stopping",
-              "next": "BLD_RED_UNCONTROLLED"
-            }
-          ]
-        },
-        {
-          "id": "bld_003",
-          "text": "How does the wound look, and is the person feeling dizzy?",
-          "type": "single_choice",
-          "required": true,
-          "options": [
-            {
-              "id": "dizzy",
-              "label": "The person is feeling very dizzy, weak, or pale",
-              "next": "BLD_RED_SHOCK"
-            },
-            {
-              "id": "deep_cut",
-              "label": "The person feels okay, but the cut is deep or gaping open",
-              "next": "BLD_YELLOW_SUTURE"
-            },
-            {
-              "id": "small_cut",
-              "label": "Small surface cut or scrape, person feels fine",
-              "next": "BLD_GREEN_MINOR"
-            }
-          ]
-        }
-      ],
-      "results": [
-        {
-          "id": "BLD_RED_HEMORRHAGE",
-          "severity": "RED",
-          "title": "Emergency Wound Care Required",
-          "message": "Fast bleeding needs immediate firm pressure with a clean cloth. Press hard directly on the wound while calling for an ambulance.",
-          "actions": [
-            "CALL_112",
-            "CALL_108",
-            "APPLY_DIRECT_FIRM_PRESSURE"
-          ],
-          "stop_assessment": true
-        },
-        {
-          "id": "BLD_RED_UNCONTROLLED",
-          "severity": "RED",
-          "title": "Hospital Dressing & Stitches Needed",
-          "message": "Because bleeding is continuing despite pressure, having a doctor dress the wound and close it is the right next step.",
-          "actions": [
-            "CALL_112",
-            "CALL_108",
-            "APPLY_DIRECT_FIRM_PRESSURE"
-          ],
-          "stop_assessment": true
-        },
-        {
-          "id": "BLD_RED_SHOCK",
-          "severity": "RED",
-          "title": "Rest Flat & Seek Medical Care",
-          "message": "Feeling dizzy after bleeding means the body needs fluids and care. Lie down flat, raise your legs on pillows, and seek medical assistance.",
-          "actions": [
-            "CALL_112",
-            "CALL_108",
-            "LIE_DOWN_ELEVATE_FEET",
-            "APPLY_DIRECT_FIRM_PRESSURE"
-          ],
-          "stop_assessment": true
-        },
-        {
-          "id": "BLD_YELLOW_SUTURE",
-          "severity": "YELLOW",
-          "title": "Stitches or Glue Recommended",
-          "message": "A deep cut heals much cleaner and faster with professional stitches or medical glue. Visit a nearby clinic within the next 4 to 6 hours.",
-          "actions": [
-            "VISIT_HEALTHCARE_PROVIDER_TODAY",
-            "APPLY_DIRECT_FIRM_PRESSURE"
-          ],
-          "stop_assessment": true
-        },
-        {
-          "id": "BLD_GREEN_MINOR",
-          "severity": "GREEN",
-          "title": "Simple Home Wound Care",
-          "message": "Rinse the cut under clean tap water with gentle soap. Pat dry, apply an antiseptic cream if you have one, and protect it with a clean bandage.",
-          "actions": [],
-          "stop_assessment": true
-        }
-      ],
-      "safety_net": [
-        "Keep continuous firm pressure on any bleeding cut without lifting the cloth to check.",
-        "If an object like glass or metal is stuck deeply inside, do not pull it out; hold pressure around it and visit a clinic."
-      ]
-    },
-    "breathing_dehydration": {
-      "protocol_id": "breathing_dehydration",
-      "protocol_name": "Breathing Distress & Severe Dehydration",
-      "version": "2.0_OFFLINE",
-      "trigger_keywords": [
-        "breath",
-        "breathing",
-        "saas",
-        "asthma",
-        "gasping",
-        "wheezing",
-        "dehydration",
-        "vomiting"
-      ],
-      "entry_question": "br_001",
-      "questions": [
-        {
-          "id": "br_001",
-          "text": "Is the person struggling so hard to breathe that they cannot speak more than 2 or 3 words without stopping, or are their lips turning blue/gray?",
-          "type": "single_choice",
-          "required": true,
-          "options": [
-            {
-              "id": "yes",
-              "label": "Yes (Severe breathing struggle / Blue lips)",
-              "next": "RESP_RED_DISTRESS"
-            },
-            {
-              "id": "no",
-              "label": "No (Can speak short sentences)",
-              "next": "br_002"
-            }
-          ]
-        },
-        {
-          "id": "br_002",
-          "text": "Is there a harsh, loud, high-pitched whistling sound when breathing IN (stridor), or a choking sensation in the throat?",
-          "type": "single_choice",
-          "required": true,
-          "options": [
-            {
-              "id": "yes",
-              "label": "Yes (Harsh whistling in / Choking feeling)",
-              "next": "RESP_RED_AIRWAY"
-            },
-            {
-              "id": "no",
-              "label": "No airway whistling",
-              "next": "br_003"
-            }
-          ]
-        },
-        {
-          "id": "br_003",
-          "text": "Are there symptoms of severe dehydration: unable to drink/keep fluids down, no urine for over 12 hours, or extreme lethargy?",
-          "type": "single_choice",
-          "required": true,
-          "options": [
-            {
-              "id": "yes",
-              "label": "Yes (Cannot keep fluids down / No urine 12h+)",
-              "next": "DEHYD_RED_SHOCK"
-            },
-            {
-              "id": "no",
-              "label": "No (Able to sip fluids and pass urine)",
-              "next": "BR_GREEN_MILD"
-            }
-          ]
-        }
-      ],
-      "results": [
-        {
-          "id": "RESP_RED_DISTRESS",
-          "severity": "RED",
-          "title": "Severe Respiratory Distress Alert",
-          "message": "Acute breathlessness, inability to complete sentences, or blue lips indicate compromised lung function requiring emergency supplemental oxygen.",
-          "actions": [
-            "CALL_112",
-            "CALL_108",
-            "SIT_UPRIGHT_DO_NOT_LIE_FLAT"
-          ],
-          "stop_assessment": true
-        },
-        {
-          "id": "RESP_RED_AIRWAY",
-          "severity": "RED",
-          "title": "Upper Airway Obstruction Alert",
-          "message": "Inspiratory stridor or throat swelling can progress rapidly. Immediate paramedic support and hospital care are required.",
-          "actions": [
-            "CALL_112",
-            "CALL_108",
-            "SIT_UPRIGHT_DO_NOT_LIE_FLAT"
-          ],
-          "stop_assessment": true
-        },
-        {
-          "id": "DEHYD_RED_SHOCK",
-          "severity": "RED",
-          "title": "Severe Dehydration / Fluid Deficit",
-          "message": "Inability to keep fluids down combined with anuria requires rapid clinic/hospital IV fluid resuscitation.",
-          "actions": [
-            "CALL_112",
-            "CALL_108",
-            "USE_ORAL_REHYDRATION_SALTS"
-          ],
-          "stop_assessment": true
-        },
-        {
-          "id": "BR_GREEN_MILD",
-          "severity": "GREEN",
-          "title": "Mild Respiratory / Hydration Symptoms",
-          "message": "No acute emergency red flags were detected. Rest upright, take frequent small sips of water with ORS, and consult a doctor if discomfort persists.",
-          "actions": [
-            "USE_ORAL_REHYDRATION_SALTS"
-          ],
-          "stop_assessment": true
-        }
-      ],
-      "safety_net": [
-        "Never force someone who is struggling to breathe to lie flat on their back.",
-        "If the person becomes confused or lips turn gray, call 112 or 108 immediately."
-      ]
-    },
     "chest_pain": {
       "protocol_id": "chest_pain",
       "protocol_name": "Chest Discomfort & Heart Health",
-      "version": "2.1_CALM",
+      "version": "3.0_OFFLINE",
       "trigger_keywords": [
         "chest",
         "heart",
@@ -279,1188 +16,1360 @@ window.LifelineTriageData = {
         "pressure",
         "angina",
         "tightness",
-        "seene me dard"
+        "seena dard",
+        "cardiac",
+        "palpitations"
       ],
-      "entry_question": "cp_001",
       "questions": [
         {
           "id": "cp_001",
-          "text": "First, how is your breathing feeling right now?",
-          "type": "single_choice",
-          "required": true,
+          "text": "How would you describe the chest sensation?",
           "options": [
             {
-              "id": "normal",
-              "label": "I can breathe normally",
-              "next": "cp_002"
+              "id": "o1",
+              "label": "Crushing pressure, heavy weight, or intense tightness in chest",
+              "severity": "RED"
             },
             {
-              "id": "mild",
-              "label": "A little uncomfortable, but I can talk easily",
-              "next": "cp_002"
+              "id": "o2",
+              "label": "Sharp or burning pain when breathing deeply or moving",
+              "severity": "YELLOW"
             },
             {
-              "id": "struggling",
-              "label": "I am struggling to catch my breath or speak in full sentences",
-              "next": "CP_RED_CRITICAL"
+              "id": "o3",
+              "label": "Mild dull ache, muscle soreness, or fleeting prick",
+              "severity": "GREEN"
             }
           ]
         },
         {
           "id": "cp_002",
-          "text": "How would you best describe the feeling in your chest?",
-          "type": "single_choice",
-          "required": true,
+          "text": "Does the discomfort spread to other areas of the body?",
           "options": [
             {
-              "id": "pressure",
-              "label": "A heavy weight, tightness, or squeezing pressure",
-              "next": "cp_003"
+              "id": "o4",
+              "label": "Spreading to left arm, shoulder, jaw, neck, or upper back",
+              "severity": "RED"
             },
             {
-              "id": "burning",
-              "label": "A burning feeling or acid indigestion",
-              "next": "cp_003"
+              "id": "o5",
+              "label": "Spreading to the upper stomach or ribs",
+              "severity": "YELLOW"
             },
             {
-              "id": "sharp",
-              "label": "Sharp or stabbing, especially when breathing deeply",
-              "next": "cp_004"
-            },
-            {
-              "id": "tender",
-              "label": "Tender or sore when I press a specific spot with my finger",
-              "next": "cp_005"
+              "id": "o6",
+              "label": "Localized to one single tender spot or no spreading",
+              "severity": "GREEN"
             }
           ]
         },
         {
           "id": "cp_003",
-          "text": "Does this discomfort spread anywhere else, like your arm, neck, or jaw?",
-          "type": "single_choice",
-          "required": true,
+          "text": "Are you experiencing any of these accompanying symptoms?",
           "options": [
             {
-              "id": "spreads",
-              "label": "Yes, to my left arm, neck, jaw, or upper stomach",
-              "next": "cp_006"
+              "id": "o7",
+              "label": "Shortness of breath, cold clammy sweat, dizziness, or nausea",
+              "severity": "RED"
             },
             {
-              "id": "back",
-              "label": "Yes, straight through to my upper back",
-              "next": "CP_RED_DISSECTION"
+              "id": "o8",
+              "label": "Acid reflux, sour belching, or mild fatigue",
+              "severity": "YELLOW"
             },
             {
-              "id": "no_spread",
-              "label": "No, it stays right in the center of my chest",
-              "next": "cp_006"
+              "id": "o9",
+              "label": "No other symptoms, feeling generally stable",
+              "severity": "GREEN"
             }
           ]
         },
         {
           "id": "cp_004",
-          "text": "Did this pain start suddenly as an intense tearing sensation, or is it more of an ache?",
-          "type": "single_choice",
-          "required": true,
+          "text": "How long has this chest discomfort been present?",
           "options": [
             {
-              "id": "tearing",
-              "label": "Sudden, very sharp tearing pain in the chest or back",
-              "next": "CP_RED_DISSECTION"
+              "id": "o10",
+              "label": "Started suddenly and continuous for more than 10-15 minutes",
+              "severity": "RED"
             },
             {
-              "id": "gradual",
-              "label": "It built up gradually or feels like a muscle catch",
-              "next": "cp_005"
-            }
-          ]
-        },
-        {
-          "id": "cp_005",
-          "text": "If you gently press on your ribs or chest muscle where it hurts, does the pain become sharper?",
-          "type": "single_choice",
-          "required": true,
-          "options": [
-            {
-              "id": "yes",
-              "label": "Yes, pressing on the spot hurts directly",
-              "next": "CP_GREEN_MUSCULOSKELETAL"
+              "id": "o11",
+              "label": "Comes and goes with exertion, relieved by resting",
+              "severity": "YELLOW"
             },
             {
-              "id": "no",
-              "label": "No, pressing doesn't change the feeling",
-              "next": "CP_YELLOW_EVALUATE"
-            }
-          ]
-        },
-        {
-          "id": "cp_006",
-          "text": "Are you noticing any other changes, like cold sweating, nausea, or feeling lightheaded?",
-          "type": "single_choice",
-          "required": true,
-          "options": [
-            {
-              "id": "sweating_dizzy",
-              "label": "Yes, feeling cold sweaty, nauseous, or unusually dizzy",
-              "next": "CP_RED_STEMI"
-            },
-            {
-              "id": "none",
-              "label": "No, just the chest sensation without sweating or dizziness",
-              "next": "CP_RED_ANGINA"
+              "id": "o12",
+              "label": "Brief moment (seconds) or mild constant soreness for days",
+              "severity": "GREEN"
             }
           ]
         }
       ],
-      "results": [
-        {
-          "id": "CP_RED_CRITICAL",
-          "severity": "RED",
-          "title": "Immediate Medical Support Recommended",
-          "message": "Because you are having noticeable difficulty breathing along with chest discomfort, having emergency medical personnel assist you right away is the safest and most supportive step. Sit down comfortably while help is arranged.",
-          "actions": [
-            "CALL_112",
-            "CALL_108",
-            "SIT_UPRIGHT_DO_NOT_LIE_FLAT"
-          ],
-          "stop_assessment": true
-        },
-        {
-          "id": "CP_RED_STEMI",
-          "severity": "RED",
-          "title": "Prompt Heart Evaluation Advised",
-          "message": "The combination of chest pressure with sweating or lightheadedness means your heart should be evaluated by a healthcare professional as soon as possible. Stay calm, rest quietly in a chair, and let an ambulance take you to the clinic.",
-          "actions": [
-            "CALL_112",
-            "CALL_108",
-            "DO_NOT_GIVE_ASPIRIN_FOOD_OR_WATER"
-          ],
-          "stop_assessment": true
-        },
-        {
-          "id": "CP_RED_ANGINA",
-          "severity": "RED",
-          "title": "Medical Evaluation Needed",
-          "message": "Chest tightness or radiating sensations are best checked by a doctor right away to ensure your heart is getting good blood flow. Avoid walking or physical effort right now.",
-          "actions": [
-            "CALL_112",
-            "CALL_108"
-          ],
-          "stop_assessment": true
-        },
-        {
-          "id": "CP_RED_DISSECTION",
-          "severity": "RED",
-          "title": "Hospital Check Recommended",
-          "message": "Sudden, sharp pain traveling between your shoulder blades warrants a thorough examination at an emergency hospital today to check your circulation.",
-          "actions": [
-            "CALL_112",
-            "CALL_108"
-          ],
-          "stop_assessment": true
-        },
-        {
-          "id": "CP_YELLOW_EVALUATE",
-          "severity": "YELLOW",
-          "title": "Same-Day Clinic Checkup Suggested",
-          "message": "Your symptoms do not clearly point to a heart attack, but unexplained chest sensations are always worth having reviewed by a general physician or clinic today.",
-          "actions": [
-            "VISIT_HEALTHCARE_PROVIDER_TODAY"
-          ],
-          "stop_assessment": true
-        },
-        {
-          "id": "CP_GREEN_MUSCULOSKELETAL",
-          "severity": "GREEN",
-          "title": "Likely Muscle or Rib Soreness",
-          "message": "Because the discomfort is tender to the touch, it is very likely a mild chest muscle pull or rib cartilage inflammation. No urgent red flags were found. Rest comfortably and observe how you feel.",
-          "actions": [],
-          "stop_assessment": true
-        }
-      ],
-      "safety_net": [
-        "If your chest feels heavier, spreads to your neck, or you start breaking out in a sweat, call 112 or 108.",
-        "Rest quietly and avoid climbing stairs or exerting yourself while you have chest discomfort."
-      ]
-    },
-    "general": {
-      "protocol_id": "general",
-      "protocol_name": "General Health Check",
-      "version": "2.1_CALM",
-      "trigger_keywords": [
-        "general",
-        "uneasy",
-        "fever",
-        "sick",
-        "bimar",
-        "weakness"
-      ],
-      "entry_question": "gen_001",
-      "questions": [
-        {
-          "id": "gen_001",
-          "text": "How is your breathing feeling right now?",
-          "type": "single_choice",
-          "required": true,
-          "options": [
-            {
-              "id": "normal",
-              "label": "I can breathe comfortably",
-              "next": "gen_002"
-            },
-            {
-              "id": "hard",
-              "label": "I am struggling noticeably to catch my breath",
-              "next": "GEN_RED_RESPIRATORY"
-            }
-          ]
-        },
-        {
-          "id": "gen_002",
-          "text": "Have you noticed any sudden weakness in your face, arm, or trouble speaking clearly?",
-          "type": "single_choice",
-          "required": true,
-          "options": [
-            {
-              "id": "yes",
-              "label": "Yes, sudden weakness on one side or slurred speech",
-              "next": "GEN_RED_NEURO"
-            },
-            {
-              "id": "no",
-              "label": "No weakness or speech trouble",
-              "next": "gen_003"
-            }
-          ]
-        },
-        {
-          "id": "gen_003",
-          "text": "Do you have any heavy pressure or tightness in your chest?",
-          "type": "single_choice",
-          "required": true,
-          "options": [
-            {
-              "id": "yes",
-              "label": "Yes, chest pressure",
-              "next": "SWITCH_TO_CHEST"
-            },
-            {
-              "id": "no",
-              "label": "No chest pressure",
-              "next": "gen_004"
-            }
-          ]
-        },
-        {
-          "id": "gen_004",
-          "text": "Do you have a high fever where your neck feels so stiff you cannot touch your chin to your chest?",
-          "type": "single_choice",
-          "required": true,
-          "options": [
-            {
-              "id": "yes",
-              "label": "Yes, high fever with severe neck stiffness",
-              "next": "GEN_RED_SEPSIS"
-            },
-            {
-              "id": "no",
-              "label": "No neck stiffness",
-              "next": "gen_005"
-            }
-          ]
-        },
-        {
-          "id": "gen_005",
-          "text": "Have you been vomiting so much that you cannot keep water down, or haven't passed urine today?",
-          "type": "single_choice",
-          "required": true,
-          "options": [
-            {
-              "id": "yes",
-              "label": "Yes, cannot keep fluids down / very dehydrated",
-              "next": "GEN_YELLOW_DEHYDRATION"
-            },
-            {
-              "id": "no",
-              "label": "No, I can drink fluids and pass urine normally",
-              "next": "GEN_GREEN_STABLE"
-            }
-          ]
-        }
-      ],
-      "results": [
-        {
-          "id": "GEN_RED_RESPIRATORY",
-          "severity": "RED",
-          "title": "Breathing Support Recommended",
-          "message": "Because catching your breath is difficult, having emergency personnel provide oxygen and check your lungs right away is the safest choice.",
-          "actions": [
-            "CALL_112",
-            "CALL_108",
-            "SIT_UPRIGHT_DO_NOT_LIE_FLAT"
-          ],
-          "stop_assessment": true
-        },
-        {
-          "id": "GEN_RED_NEURO",
-          "severity": "RED",
-          "title": "Prompt Neurological Review Advised",
-          "message": "Sudden one-sided weakness or speech changes should be examined immediately at an emergency hospital to safeguard your brain and nerves.",
-          "actions": [
-            "CALL_112",
-            "CALL_108",
-            "DO_NOT_GIVE_ASPIRIN_FOOD_OR_WATER"
-          ],
-          "stop_assessment": true
-        },
-        {
-          "id": "GEN_RED_SEPSIS",
-          "severity": "RED",
-          "title": "Hospital Examination Recommended",
-          "message": "High fever with neck stiffness is best examined at a hospital clinic today to treat any underlying infection with effective medication.",
-          "actions": [
-            "CALL_112",
-            "CALL_108"
-          ],
-          "stop_assessment": true
-        },
-        {
-          "id": "GEN_YELLOW_DEHYDRATION",
-          "severity": "YELLOW",
-          "title": "Hydration Support Needed Today",
-          "message": "Difficulty keeping fluids down can quickly deplete your energy. A clinic doctor can give you an IV fluid pouch to get you feeling energized again.",
-          "actions": [
-            "USE_ORAL_REHYDRATION_SALTS",
-            "VISIT_HEALTHCARE_PROVIDER_TODAY"
-          ],
-          "stop_assessment": true
-        },
-        {
-          "id": "GEN_GREEN_STABLE",
-          "severity": "GREEN",
-          "title": "No Immediate Warning Signs",
-          "message": "No emergency red flags were found. Rest comfortably, sip warm fluids or water with ORS, and see a routine doctor if you don't feel better soon.",
-          "actions": [],
-          "stop_assessment": true
-        },
-        {
-          "id": "SWITCH_TO_CHEST",
-          "severity": "RED",
-          "title": "Checking Chest Symptoms",
-          "message": "Rerouting to specialized chest assessment.",
-          "actions": [
-            "CALL_112",
-            "CALL_108"
-          ],
-          "stop_assessment": false
-        }
-      ],
-      "safety_net": [
-        "If you develop trouble breathing or feel faint, please call 112 or 108.",
-        "Drink fluids with electrolytes in small sips throughout the day."
-      ]
-    },
-    "headache": {
-      "protocol_id": "headache",
-      "protocol_name": "Headache & Neurological Red Flags",
-      "version": "2.0_OFFLINE",
-      "trigger_keywords": [
-        "headache",
-        "sar dard",
-        "thunderclap",
-        "migraine",
-        "head pain",
-        "temple pain"
-      ],
-      "entry_question": "ha_001",
-      "questions": [
-        {
-          "id": "ha_001",
-          "text": "Did this headache hit you suddenly like a clap of thunder, reaching its worst severity within 1 minute?",
-          "type": "single_choice",
-          "required": true,
-          "options": [
-            {
-              "id": "yes",
-              "label": "Yes (Sudden explosive onset in seconds)",
-              "next": "HA_RED_THUNDERCLAP"
-            },
-            {
-              "id": "no",
-              "label": "No (Built up gradually)",
-              "next": "ha_002"
-            }
-          ]
-        },
-        {
-          "id": "ha_002",
-          "text": "Do you have a stiff neck (cannot touch chin to chest), high fever, or sensitivity to light with confusion?",
-          "type": "single_choice",
-          "required": true,
-          "options": [
-            {
-              "id": "yes",
-              "label": "Yes (Stiff neck with fever or confusion)",
-              "next": "HA_RED_MENINGISM"
-            },
-            {
-              "id": "no",
-              "label": "No stiff neck",
-              "next": "ha_003"
-            }
-          ]
-        },
-        {
-          "id": "ha_003",
-          "text": "Are you having sudden weakness on one side of your face/body, slurred speech, or vision loss in one eye?",
-          "type": "single_choice",
-          "required": true,
-          "options": [
-            {
-              "id": "yes",
-              "label": "Yes (Weakness, slurred speech, vision loss)",
-              "next": "HA_RED_NEURO"
-            },
-            {
-              "id": "no",
-              "label": "No neurological weakness",
-              "next": "ha_004"
-            }
-          ]
-        },
-        {
-          "id": "ha_004",
-          "text": "Did this headache begin right after a recent head injury or impact?",
-          "type": "single_choice",
-          "required": true,
-          "options": [
-            {
-              "id": "yes",
-              "label": "Yes (Started after head impact)",
-              "next": "HA_YELLOW_TRAUMA"
-            },
-            {
-              "id": "no",
-              "label": "No head injury",
-              "next": "HA_GREEN_PRIMARY"
-            }
-          ]
-        }
-      ],
-      "results": [
-        {
-          "id": "HA_RED_THUNDERCLAP",
-          "severity": "RED",
-          "title": "Possible Acute Intracranial Emergency",
-          "message": "A sudden explosive headache reaching peak severity in seconds warrants immediate hospital CT evaluation to rule out acute vascular bleeding.",
-          "actions": [
-            "CALL_112",
-            "CALL_108",
-            "DO_NOT_GIVE_ASPIRIN_FOOD_OR_WATER"
-          ],
-          "stop_assessment": true
-        },
-        {
-          "id": "HA_RED_MENINGISM",
-          "severity": "RED",
-          "title": "Meningeal Signs Detected",
-          "message": "Headache with neck stiffness and fever requires urgent emergency evaluation for potential central nervous system infection.",
-          "actions": [
-            "CALL_112",
-            "CALL_108"
-          ],
-          "stop_assessment": true
-        },
-        {
-          "id": "HA_RED_NEURO",
-          "severity": "RED",
-          "title": "Neurological Deficit Alert",
-          "message": "Headache accompanied by facial weakness, speech slurring, or vision loss requires immediate stroke evaluation.",
-          "actions": [
-            "CALL_112",
-            "CALL_108"
-          ],
-          "stop_assessment": true
-        },
-        {
-          "id": "HA_YELLOW_TRAUMA",
-          "severity": "YELLOW",
-          "title": "Post-Trauma Evaluation Needed",
-          "message": "Headaches following a recent head impact should be examined by a physician today to check for concussion or delayed swelling.",
-          "actions": [
-            "VISIT_HEALTHCARE_PROVIDER_TODAY"
-          ],
-          "stop_assessment": true
-        },
-        {
-          "id": "HA_GREEN_PRIMARY",
-          "severity": "GREEN",
-          "title": "Typical Primary Headache Pattern",
-          "message": "No emergency red flags were detected. Rest in a dark, quiet room, stay hydrated, and consult a doctor if pain persists.",
-          "actions": [],
-          "stop_assessment": true
-        }
-      ],
-      "safety_net": [
-        "If your headache explodes suddenly, you develop vomiting, or your speech slurs, call 112 or 108 immediately."
-      ]
-    },
-    "menstrual": {
-      "protocol_id": "menstrual",
-      "protocol_name": "Menstrual Comfort & Flow Check",
-      "version": "2.1_CALM",
-      "trigger_keywords": [
-        "period",
-        "menstrual",
-        "bleeding",
-        "mahina",
-        "clots",
-        "cramps",
-        "pad"
-      ],
-      "entry_question": "men_001",
-      "questions": [
-        {
-          "id": "men_001",
-          "text": "How would you describe your bleeding flow right now?",
-          "type": "single_choice",
-          "required": true,
-          "options": [
-            {
-              "id": "manageable",
-              "label": "Normal or slightly heavier than usual, but manageable",
-              "next": "men_003"
-            },
-            {
-              "id": "very_heavy",
-              "label": "Soaking through 2 or more large pads every hour, for 2 hours in a row",
-              "next": "men_002"
-            },
-            {
-              "id": "large_clots",
-              "label": "Passing unusually large blood clots (larger than a lemon)",
-              "next": "men_002"
-            }
-          ]
-        },
-        {
-          "id": "men_002",
-          "text": "How are your energy levels and balance feeling with this heavy flow?",
-          "type": "single_choice",
-          "required": true,
-          "options": [
-            {
-              "id": "dizzy",
-              "label": "I feel very weak, pale, or dizzy when I stand up",
-              "next": "MEN_RED_HEMORRHAGE"
-            },
-            {
-              "id": "tired_only",
-              "label": "Tired or crampy, but I do not feel faint or lightheaded",
-              "next": "MEN_YELLOW_HEAVY_BLEEDING"
-            }
-          ]
-        },
-        {
-          "id": "men_003",
-          "text": "How are your cramps or pelvic pain right now?",
-          "type": "single_choice",
-          "required": true,
-          "options": [
-            {
-              "id": "normal_cramps",
-              "label": "Usual period aches or mild cramping",
-              "next": "men_004"
-            },
-            {
-              "id": "severe_pain",
-              "label": "Very sharp, sudden, or severe pain on one side of my lower belly",
-              "next": "MEN_RED_ACUTE_ABDOMEN"
-            }
-          ]
-        },
-        {
-          "id": "men_004",
-          "text": "Are you experiencing a fever, or any unusual discharge with a strong odor?",
-          "type": "single_choice",
-          "required": true,
-          "options": [
-            {
-              "id": "yes",
-              "label": "Yes, I have a fever or unusual bad odor",
-              "next": "MEN_YELLOW_INFECTION"
-            },
-            {
-              "id": "no",
-              "label": "No fever or unusual odor",
-              "next": "MEN_GREEN_ROUTINE"
-            }
-          ]
-        }
-      ],
-      "results": [
-        {
-          "id": "MEN_RED_HEMORRHAGE",
-          "severity": "RED",
-          "title": "Medical Care Recommended for Heavy Flow",
-          "message": "Because you are losing blood quickly and feeling dizzy, visiting an emergency center or calling for assistance is important to restore your fluids and help you feel better.",
-          "actions": [
-            "CALL_112",
-            "CALL_108",
-            "LIE_DOWN_ELEVATE_FEET"
-          ],
-          "stop_assessment": true
-        },
-        {
-          "id": "MEN_RED_ACUTE_ABDOMEN",
-          "severity": "RED",
-          "title": "Prompt Pelvic Examination Recommended",
-          "message": "Sudden, sharp pain on one side of your lower abdomen is best evaluated by a doctor today to check your ovaries and pelvic area.",
-          "actions": [
-            "CALL_112",
-            "CALL_108"
-          ],
-          "stop_assessment": true
-        },
-        {
-          "id": "MEN_YELLOW_HEAVY_BLEEDING",
-          "severity": "YELLOW",
-          "title": "Consult a Gynecologist Today",
-          "message": "Your flow is noticeably heavier than usual. A doctor can prescribe medication to slow the bleeding and check your blood count.",
-          "actions": [
-            "VISIT_HEALTHCARE_PROVIDER_TODAY"
-          ],
-          "stop_assessment": true
-        },
-        {
-          "id": "MEN_YELLOW_INFECTION",
-          "severity": "YELLOW",
-          "title": "Mild Pelvic Checkup Recommended",
-          "message": "Having a fever or unusual odor suggests a common pelvic infection that can be cleared up with straightforward antibiotics from a doctor.",
-          "actions": [
-            "VISIT_HEALTHCARE_PROVIDER_TODAY"
-          ],
-          "stop_assessment": true
-        },
-        {
-          "id": "MEN_GREEN_ROUTINE",
-          "severity": "GREEN",
-          "title": "Normal Cycle Pattern",
-          "message": "Your answers indicate typical menstrual symptoms without warning signs. Rest with a warm water bottle, stay hydrated, and rest as needed.",
-          "actions": [],
-          "stop_assessment": true
-        }
-      ],
-      "safety_net": [
-        "If bleeding escalates to soaking a fresh pad every 30 to 45 minutes, call 112 or 108.",
-        "Lie down and raise your feet on pillows if you feel dizzy."
-      ]
-    },
-    "pregnancy": {
-      "protocol_id": "pregnancy",
-      "protocol_name": "Pregnancy Care & Symptoms Check",
-      "version": "2.1_CALM",
-      "trigger_keywords": [
-        "pregnant",
-        "pregnancy",
-        "garbh",
-        "baby movement",
-        "labor",
-        "water broke"
-      ],
-      "entry_question": "preg_001",
-      "questions": [
-        {
-          "id": "preg_001",
-          "text": "Are you currently pregnant or could you be pregnant?",
-          "type": "single_choice",
-          "required": true,
-          "options": [
-            {
-              "id": "yes",
-              "label": "Yes, I am pregnant",
-              "next": "preg_002"
-            },
-            {
-              "id": "not_sure",
-              "label": "I might be pregnant (missed period)",
-              "next": "preg_002"
-            },
-            {
-              "id": "no",
-              "label": "No, I am not pregnant",
-              "next": "SWITCH_TO_MENSTRUATION"
-            }
-          ]
-        },
-        {
-          "id": "preg_002",
-          "text": "What is the main thing you are feeling right now?",
-          "type": "single_choice",
-          "required": true,
-          "options": [
-            {
-              "id": "sharp_pain",
-              "label": "Sharp lower belly pain or shoulder pain",
-              "next": "PREG_RED_EMERGENCY"
-            },
-            {
-              "id": "headache_vision",
-              "label": "A persistent bad headache or seeing spots/flashes",
-              "next": "PREG_RED_PREECLAMPSIA"
-            },
-            {
-              "id": "movement_fluid",
-              "label": "Baby's kicks feel much slower, or clear fluid is leaking",
-              "next": "PREG_YELLOW_OBSTETRIC"
-            },
-            {
-              "id": "mild_cramps",
-              "label": "Mild cramps or slight spotting",
-              "next": "PREG_YELLOW_EARLY"
-            },
-            {
-              "id": "routine",
-              "label": "Mild morning sickness, tiredness, or normal aches",
-              "next": "PREG_GREEN_ROUTINE"
-            }
-          ]
-        }
-      ],
-      "results": [
-        {
-          "id": "PREG_RED_EMERGENCY",
-          "severity": "RED",
-          "title": "Maternity Doctor Evaluation Needed",
-          "message": "Sharp lower belly or shoulder pain in early pregnancy is best checked right away with an ultrasound at a hospital to ensure the pregnancy is safely positioned.",
-          "actions": [
-            "CALL_112",
-            "CALL_108",
-            "LIE_DOWN_ELEVATE_FEET"
-          ],
-          "stop_assessment": true
-        },
-        {
-          "id": "PREG_RED_PREECLAMPSIA",
-          "severity": "RED",
-          "title": "Blood Pressure Check Recommended",
-          "message": "A persistent bad headache with visual spots during pregnancy can be related to high blood pressure. Having your pressure checked at a maternity clinic today will keep both you and baby safe.",
-          "actions": [
-            "CALL_112",
-            "CALL_108"
-          ],
-          "stop_assessment": true
-        },
-        {
-          "id": "PREG_YELLOW_OBSTETRIC",
-          "severity": "YELLOW",
-          "title": "Check In With Your Labor Unit Today",
-          "message": "Noticing changes in your baby's movement or leaking fluid is a good reason to visit your maternity center today for routine monitoring.",
-          "actions": [
-            "VISIT_HEALTHCARE_PROVIDER_TODAY"
-          ],
-          "stop_assessment": true
-        },
-        {
-          "id": "PREG_YELLOW_EARLY",
-          "severity": "YELLOW",
-          "title": "Clinic Ultrasound Review",
-          "message": "Mild spotting or early cramping is common, but having your doctor do a quick scan over the next 24 hours provides peace of mind.",
-          "actions": [
-            "VISIT_HEALTHCARE_PROVIDER_TODAY"
-          ],
-          "stop_assessment": true
-        },
-        {
-          "id": "PREG_GREEN_ROUTINE",
-          "severity": "GREEN",
-          "title": "Normal Pregnancy Experience",
-          "message": "Your symptoms match typical, healthy pregnancy changes. Stay well rested, drink plenty of water, and keep your regular antenatal appointments.",
-          "actions": [],
-          "stop_assessment": true
-        }
-      ],
-      "safety_net": [
-        "If you notice sudden heavy bleeding or severe belly pain, head directly to your nearest hospital maternity room.",
-        "Trust your instincts\u2014whenever you feel uncertain about your baby's movements, your clinic is always there to check."
-      ]
+      "red_result": {
+        "title": "Suspected Acute Coronary Emergency (Heart Attack Alert)",
+        "message": "Critical heart emergency signs detected. Immediate ambulance dispatch and hospital emergency department transfer is required.",
+        "actions": [
+          "CALL_112",
+          "REST_DO_NOT_EXERT",
+          "LOOSEN_TIGHT_CLOTHING",
+          "ASPIRIN_IF_PRESCRIBED"
+        ]
+      },
+      "yellow_result": {
+        "title": "Cardiovascular / Thoracic Evaluation Needed Today",
+        "message": "Moderate chest discomfort requires professional clinical examination, ECG, and physician consultation within hours.",
+        "actions": [
+          "VISIT_HEALTHCARE_PROVIDER_TODAY",
+          "REST_MONITOR",
+          "AVOID_HEAVY_ACTIVITY"
+        ]
+      },
+      "green_result": {
+        "title": "Low Urgency Chest Discomfort (Musculoskeletal / Gastric)",
+        "message": "Symptoms appear mild and non-critical. Rest comfortably, stay hydrated, and consult a clinic if symptoms persist.",
+        "actions": [
+          "REST_MONITOR",
+          "SIP_WATER",
+          "CONSULT_PRIMARY_DOCTOR"
+        ]
+      }
     },
     "stroke": {
       "protocol_id": "stroke",
-      "protocol_name": "Stroke & Acute Neurological Red Flags",
-      "version": "2.0_OFFLINE",
+      "protocol_name": "Stroke & Neurological Red Flags",
+      "version": "3.0_OFFLINE",
       "trigger_keywords": [
         "stroke",
+        "lakwa",
         "paralysis",
-        "face droop",
+        "face drooping",
         "slurred speech",
-        "weak arm",
-        "lakwa"
+        "weakness",
+        "numbness",
+        "arm drift",
+        "fast"
       ],
-      "entry_question": "str_001",
       "questions": [
         {
-          "id": "str_001",
-          "text": "Is there sudden Face drooping (uneven smile), Arm/leg weakness (cannot lift one arm), or Slurred/absent Speech?",
-          "type": "single_choice",
-          "required": true,
+          "id": "st_001",
+          "text": "Ask the person to smile broadly. What do you observe?",
           "options": [
             {
-              "id": "yes",
-              "label": "Yes (At least one symptom present)",
-              "next": "str_002"
+              "id": "o1",
+              "label": "One side of the face droops or mouth is noticeably crooked",
+              "severity": "RED"
             },
             {
-              "id": "no",
-              "label": "No face droop, arm weakness, or speech slurring",
-              "next": "str_003"
+              "id": "o2",
+              "label": "Slight facial stiffness or numbness on one side",
+              "severity": "YELLOW"
+            },
+            {
+              "id": "o3",
+              "label": "Both sides of face smile evenly and normally",
+              "severity": "GREEN"
             }
           ]
         },
         {
-          "id": "str_002",
-          "text": "Did these symptoms start or was the person last known to be normal within the last 24 hours?",
-          "type": "single_choice",
-          "required": true,
+          "id": "st_002",
+          "text": "Ask the person to raise both arms out front with eyes closed for 10 seconds.",
           "options": [
             {
-              "id": "yes",
-              "label": "Yes (Within last 24 hours / Just now)",
-              "next": "STR_RED_ACUTE_WINDOW"
+              "id": "o4",
+              "label": "One arm drifts downwards or cannot be lifted at all",
+              "severity": "RED"
             },
             {
-              "id": "no",
-              "label": "No (Started more than 24 hours ago)",
-              "next": "STR_RED_COMPLETED"
+              "id": "o5",
+              "label": "Both arms feel heavy or clumsy, but stay raised",
+              "severity": "YELLOW"
+            },
+            {
+              "id": "o6",
+              "label": "Both arms raise easily and remain steady",
+              "severity": "GREEN"
             }
           ]
         },
         {
-          "id": "str_003",
-          "text": "Did the person have a sudden weakness or speech slurring that has COMPLETELY resolved and gone back to normal?",
-          "type": "single_choice",
-          "required": true,
+          "id": "st_003",
+          "text": "Ask the person to repeat: 'The early bird catches the worm'. How do they sound?",
           "options": [
             {
-              "id": "yes",
-              "label": "Yes (Resolved completely within minutes)",
-              "next": "STR_YELLOW_TIA"
+              "id": "o7",
+              "label": "Words are slurred, garbled, or completely unable to speak",
+              "severity": "RED"
             },
             {
-              "id": "no",
-              "label": "No weakness or speech symptoms",
-              "next": "STR_GREEN_OBSERVE"
+              "id": "o8",
+              "label": "Speech is slow, hesitant, or voice is hoarse",
+              "severity": "YELLOW"
+            },
+            {
+              "id": "o9",
+              "label": "Speech is clear, normal, and easily understood",
+              "severity": "GREEN"
+            }
+          ]
+        },
+        {
+          "id": "st_004",
+          "text": "When did these neurological signs first begin?",
+          "options": [
+            {
+              "id": "o10",
+              "label": "Within the last 3 to 4.5 hours (Emergency Golden Window)",
+              "severity": "RED"
+            },
+            {
+              "id": "o11",
+              "label": "Gradually worsening over the last 12 to 24 hours",
+              "severity": "RED"
+            },
+            {
+              "id": "o12",
+              "label": "No neurological signs detected",
+              "severity": "GREEN"
             }
           ]
         }
       ],
-      "results": [
+      "red_result": {
+        "title": "Acute Stroke Alert (Time-Critical Neurological Emergency)",
+        "message": "F.A.S.T. stroke red flags detected. Brain cells lose oxygen rapidly. Call 112/108 immediately and rush to a stroke-ready hospital.",
+        "actions": [
+          "CALL_112",
+          "RECORD_TIME_OF_ONSET",
+          "LIE_PATIENT_ON_SIDE",
+          "DO_NOT_GIVE_FOOD_OR_WATER"
+        ]
+      },
+      "yellow_result": {
+        "title": "Neurological Assessment Recommended",
+        "message": "Mild neurological or motor symptoms require thorough evaluation by a physician or neurologist today.",
+        "actions": [
+          "VISIT_HEALTHCARE_PROVIDER_TODAY",
+          "REST_MONITOR",
+          "DO_NOT_DRIVE"
+        ]
+      },
+      "green_result": {
+        "title": "No Acute Stroke Flags Detected",
+        "message": "Facial symmetry, motor arm strength, and speech fluency appear normal. Follow routine medical advice.",
+        "actions": [
+          "REST_MONITOR",
+          "CONSULT_PRIMARY_DOCTOR"
+        ]
+      }
+    },
+    "breathing_dehydration": {
+      "protocol_id": "breathing_dehydration",
+      "protocol_name": "Breathing Distress & Severe Dehydration",
+      "version": "3.0_OFFLINE",
+      "trigger_keywords": [
+        "breath",
+        "breathing",
+        "saans",
+        "asthma",
+        "wheezing",
+        "suffocating",
+        "gasping",
+        "dehydration",
+        "sunstroke",
+        "heat"
+      ],
+      "questions": [
         {
-          "id": "STR_RED_ACUTE_WINDOW",
-          "severity": "RED",
-          "title": "Acute Stroke Alert (Time is Brain)",
-          "message": "Sudden facial drooping, arm weakness, or speech difficulty is an acute medical emergency. Rapid hospital arrival can reverse brain injury. Call emergency services immediately.",
-          "actions": [
-            "CALL_112",
-            "CALL_108",
-            "DO_NOT_GIVE_ASPIRIN_FOOD_OR_WATER"
-          ],
-          "stop_assessment": true
+          "id": "br_001",
+          "text": "How is the person's breathing effort and oxygenation?",
+          "options": [
+            {
+              "id": "o1",
+              "label": "Severe gasping, unable to speak full words, or blue/gray lips",
+              "severity": "RED"
+            },
+            {
+              "id": "o2",
+              "label": "Audible wheezing, whistling, or rapid shallow breaths",
+              "severity": "YELLOW"
+            },
+            {
+              "id": "o3",
+              "label": "Breathing comfortably and able to speak in complete sentences",
+              "severity": "GREEN"
+            }
+          ]
         },
         {
-          "id": "STR_RED_COMPLETED",
-          "severity": "RED",
-          "title": "Urgent Hospital Stroke Admission Required",
-          "message": "Neurological deficits present beyond 24 hours require hospital admission for neuro-imaging, secondary prevention, and specialized care.",
-          "actions": [
-            "CALL_112",
-            "CALL_108"
-          ],
-          "stop_assessment": true
+          "id": "br_002",
+          "text": "What is the hydration and fluid retention status?",
+          "options": [
+            {
+              "id": "o4",
+              "label": "Unable to keep any water down, vomiting continuously, no urine for 12h+",
+              "severity": "RED"
+            },
+            {
+              "id": "o5",
+              "label": "Very dry mouth, intense thirst, and dark yellow concentrated urine",
+              "severity": "YELLOW"
+            },
+            {
+              "id": "o6",
+              "label": "Drinking fluids normally with regular light-colored urination",
+              "severity": "GREEN"
+            }
+          ]
         },
         {
-          "id": "STR_YELLOW_TIA",
-          "severity": "YELLOW",
-          "title": "Suspected Mini-Stroke (TIA) Alert",
-          "message": "Temporary symptoms that resolve quickly still carry a high risk of subsequent stroke. Urgent same-day hospital neurological evaluation is mandatory.",
-          "actions": [
-            "VISIT_HEALTHCARE_PROVIDER_TODAY"
-          ],
-          "stop_assessment": true
+          "id": "br_003",
+          "text": "How is the person's energy level and mental responsiveness?",
+          "options": [
+            {
+              "id": "o7",
+              "label": "Confused, extremely lethargic, delirious, or faint upon sitting up",
+              "severity": "RED"
+            },
+            {
+              "id": "o8",
+              "label": "Fatigued, dizzy when standing quickly, but fully oriented",
+              "severity": "YELLOW"
+            },
+            {
+              "id": "o9",
+              "label": "Alert, energetic, and answering questions clearly",
+              "severity": "GREEN"
+            }
+          ]
         },
         {
-          "id": "STR_GREEN_OBSERVE",
-          "severity": "GREEN",
-          "title": "No Acute Stroke Red Flags",
-          "message": "No emergency neurological red flags were detected based on your answers. Continue monitoring and consult a doctor for chronic symptoms.",
-          "actions": [],
-          "stop_assessment": true
+          "id": "br_004",
+          "text": "Did this begin after exposure to extreme heat, an allergen, or infection?",
+          "options": [
+            {
+              "id": "o10",
+              "label": "Sudden onset after hot sun exposure, sting, or known asthma attack",
+              "severity": "RED"
+            },
+            {
+              "id": "o11",
+              "label": "Accompanied by a productive cough or moderate fever for 2-3 days",
+              "severity": "YELLOW"
+            },
+            {
+              "id": "o12",
+              "label": "Mild symptom without high temperature or allergic trigger",
+              "severity": "GREEN"
+            }
+          ]
         }
       ],
-      "safety_net": [
-        "Remember FAST: Face drooping, Arm weakness, Speech difficulty, Time to call 112 / 108.",
-        "Do not give water or aspirin before brain scan imaging has ruled out bleeding."
-      ]
+      "red_result": {
+        "title": "Severe Respiratory Distress / Dehydration Emergency",
+        "message": "Critical breathlessness or hypovolemic dehydration detected. Immediate oxygen therapy or IV fluid rehydration is required.",
+        "actions": [
+          "CALL_112",
+          "SIT_UPRIGHT_DO_NOT_LIE_FLAT",
+          "SIP_ORS_IF_CONSCIOUS",
+          "KEEP_AIRWAY_OPEN"
+        ]
+      },
+      "yellow_result": {
+        "title": "Clinical Rehydration & Respiratory Care Needed",
+        "message": "Moderate breathing difficulty or dehydration requires oral rehydration salts (ORS) and clinical evaluation today.",
+        "actions": [
+          "USE_ORAL_REHYDRATION_SALTS",
+          "VISIT_HEALTHCARE_PROVIDER_TODAY",
+          "REST_COOL_ENVIRONMENT"
+        ]
+      },
+      "green_result": {
+        "title": "Mild Respiratory / Hydration Concern",
+        "message": "Breathing is stable and hydration is adequate. Rest, drink clean water with electrolytes, and monitor.",
+        "actions": [
+          "USE_ORAL_REHYDRATION_SALTS",
+          "REST_MONITOR"
+        ]
+      }
+    },
+    "bleeding": {
+      "protocol_id": "bleeding",
+      "protocol_name": "Cuts, Wounds & Bleeding",
+      "version": "3.0_OFFLINE",
+      "trigger_keywords": [
+        "blood",
+        "bleeding",
+        "khoon",
+        "wound",
+        "cut",
+        "gash",
+        "stab",
+        "trauma",
+        "accident",
+        "fracture",
+        "injury"
+      ],
+      "questions": [
+        {
+          "id": "bld_001",
+          "text": "How fast is blood coming from the cut or wound?",
+          "options": [
+            {
+              "id": "o1",
+              "label": "Spurting or pouring out rapidly and profusely",
+              "severity": "RED"
+            },
+            {
+              "id": "o2",
+              "label": "Flowing steadily like a slow tap",
+              "severity": "YELLOW"
+            },
+            {
+              "id": "o3",
+              "label": "Slow trickle or minor surface ooze",
+              "severity": "GREEN"
+            }
+          ]
+        },
+        {
+          "id": "bld_002",
+          "text": "When you apply firm direct pressure with a clean cloth for 5-10 minutes:",
+          "options": [
+            {
+              "id": "o4",
+              "label": "Blood keeps soaking through without slowing down",
+              "severity": "RED"
+            },
+            {
+              "id": "o5",
+              "label": "Bleeding slows down noticeably but still oozes",
+              "severity": "YELLOW"
+            },
+            {
+              "id": "o6",
+              "label": "Bleeding stopped completely",
+              "severity": "GREEN"
+            }
+          ]
+        },
+        {
+          "id": "bld_003",
+          "text": "How does the wound appear physically?",
+          "options": [
+            {
+              "id": "o7",
+              "label": "Deep, gaping open wider than 1cm, or bone/muscle visible",
+              "severity": "RED"
+            },
+            {
+              "id": "o8",
+              "label": "Clean cut longer than 2cm requiring professional stitches",
+              "severity": "YELLOW"
+            },
+            {
+              "id": "o9",
+              "label": "Superficial surface scrape, graze, or shallow scratch",
+              "severity": "GREEN"
+            }
+          ]
+        },
+        {
+          "id": "bld_004",
+          "text": "Is the person experiencing shock symptoms (pale skin, cold sweat, dizziness)?",
+          "options": [
+            {
+              "id": "o10",
+              "label": "Very pale, sweating profusely, shivering, or feeling faint",
+              "severity": "RED"
+            },
+            {
+              "id": "o11",
+              "label": "Slightly dizzy but improving when sitting down",
+              "severity": "YELLOW"
+            },
+            {
+              "id": "o12",
+              "label": "Feeling calm, alert, and physiologically stable",
+              "severity": "GREEN"
+            }
+          ]
+        }
+      ],
+      "red_result": {
+        "title": "Critical Hemorrhage / Deep Trauma Alert",
+        "message": "Severe uncontrolled bleeding requires continuous direct pressure and immediate ambulance transport to hospital.",
+        "actions": [
+          "CALL_112",
+          "APPLY_DIRECT_FIRM_PRESSURE",
+          "ELEVATE_WOUND_IF_NO_FRACTURE",
+          "LIE_DOWN_ELEVATE_FEET"
+        ]
+      },
+      "yellow_result": {
+        "title": "Wound Closure / Suture Care Needed Today",
+        "message": "The cut is stable but deep enough to require clinical disinfection, stitches/glue, and tetanus booster.",
+        "actions": [
+          "VISIT_HEALTHCARE_PROVIDER_TODAY",
+          "APPLY_DIRECT_FIRM_PRESSURE",
+          "DRESS_CLEAN_BANDAGE"
+        ]
+      },
+      "green_result": {
+        "title": "Minor Surface Wound (Home First Aid)",
+        "message": "Wash with clean tap water and mild soap. Apply antiseptic cream and cover with a sterile bandage.",
+        "actions": [
+          "DRESS_CLEAN_BANDAGE",
+          "REST_MONITOR"
+        ]
+      }
     },
     "unconsciousness_adult": {
       "protocol_id": "unconsciousness_adult",
       "protocol_name": "Fainting & Consciousness Check",
-      "version": "2.1_CALM",
+      "version": "3.0_OFFLINE",
       "trigger_keywords": [
         "unconscious",
         "behosh",
-        "fainted",
-        "seizure",
-        "collapsed",
+        "faint",
+        "fainting",
         "blackout",
-        "dora"
+        "collapse",
+        "seizure",
+        "fit",
+        "convulsions"
       ],
-      "entry_question": "unc_001",
       "questions": [
         {
           "id": "unc_001",
-          "text": "Is the person awake and able to respond to you right now?",
-          "type": "single_choice",
-          "required": true,
+          "text": "What is the person's current state of responsiveness?",
           "options": [
             {
-              "id": "yes_talking",
-              "label": "Yes, they are awake and talking",
-              "next": "unc_003"
+              "id": "o1",
+              "label": "Unresponsive to loud voice and shoulder shaking",
+              "severity": "RED"
             },
             {
-              "id": "drowsy",
-              "label": "They are drowsy or confused, but their eyes are open",
-              "next": "unc_004"
+              "id": "o2",
+              "label": "Drowsy, confused, or opens eyes only when spoken to loudly",
+              "severity": "YELLOW"
             },
             {
-              "id": "no_asleep",
-              "label": "No, they cannot be woken up at all",
-              "next": "unc_002"
+              "id": "o3",
+              "label": "Fully awake, alert, and answering questions",
+              "severity": "GREEN"
             }
           ]
         },
         {
           "id": "unc_002",
-          "text": "Watch their chest for 5 seconds. Are they breathing steadily?",
-          "type": "single_choice",
-          "required": true,
+          "text": "Did the person have rhythmic jerking, stiffening, or convulsions (seizure)?",
           "options": [
             {
-              "id": "breathing_normal",
-              "label": "Yes, their chest is rising and falling steadily",
-              "next": "UNC_RED_COMA"
+              "id": "o4",
+              "label": "Yes, active or recent jerking, tongue bite, or stiff posture",
+              "severity": "RED"
             },
             {
-              "id": "breathing_bad",
-              "label": "No, they are not breathing or are making gasping sounds",
-              "next": "UNC_RED_ARREST"
+              "id": "o5",
+              "label": "Limp fainting spell lasting under 1 minute, recovered now",
+              "severity": "YELLOW"
+            },
+            {
+              "id": "o6",
+              "label": "No seizure or fainting; only lightheadedness",
+              "severity": "GREEN"
             }
           ]
         },
         {
           "id": "unc_003",
-          "text": "Did they faint briefly, or did they have sudden body shaking or jerking?",
-          "type": "single_choice",
-          "required": true,
+          "text": "Is the person breathing normally right now?",
           "options": [
             {
-              "id": "fainted",
-              "label": "They fainted for a moment and woke right back up",
-              "next": "unc_005"
+              "id": "o7",
+              "label": "No breathing or abnormal gasping/snoring sounds (agonal)",
+              "severity": "RED"
             },
             {
-              "id": "jerking",
-              "label": "Their arms or legs were shaking or jerking (a seizure)",
-              "next": "UNC_RED_ACTIVE_SEIZURE"
+              "id": "o8",
+              "label": "Breathing fast or shallow, but continuous",
+              "severity": "YELLOW"
             },
             {
-              "id": "just_dizzy",
-              "label": "They felt weak or dizzy, but didn't actually lose consciousness",
-              "next": "UNC_GREEN_VASOVAGAL"
+              "id": "o9",
+              "label": "Breathing easily, normally, and regularly",
+              "severity": "GREEN"
             }
           ]
         },
         {
           "id": "unc_004",
-          "text": "Are they able to tell you their name and where they are?",
-          "type": "single_choice",
-          "required": true,
+          "text": "Did the person suffer a head injury or strike the floor during collapse?",
           "options": [
             {
-              "id": "yes_oriented",
-              "label": "Yes, they know where they are",
-              "next": "unc_005"
+              "id": "o10",
+              "label": "Hit head hard, bleeding from scalp, or vomiting after waking",
+              "severity": "RED"
             },
             {
-              "id": "confused",
-              "label": "No, they seem unusually confused, slow, or slurring words",
-              "next": "UNC_RED_PERSISTENT_AMS"
-            }
-          ]
-        },
-        {
-          "id": "unc_005",
-          "text": "Before fainting, were they having chest pain, or did they bump their head when they fell?",
-          "type": "single_choice",
-          "required": true,
-          "options": [
-            {
-              "id": "yes_chest_head",
-              "label": "Yes, they had chest discomfort or hit their head",
-              "next": "UNC_YELLOW_CARDIAC_SYNCOPE"
+              "id": "o11",
+              "label": "Minor bump on body, no head impact",
+              "severity": "YELLOW"
             },
             {
-              "id": "no_simple",
-              "label": "No, it happened after standing up quickly, warm weather, or blood draw",
-              "next": "UNC_GREEN_VASOVAGAL"
+              "id": "o12",
+              "label": "Sat or lay down gently before fainting; no trauma",
+              "severity": "GREEN"
             }
           ]
         }
       ],
-      "results": [
+      "red_result": {
+        "title": "Severe Unconsciousness / Airway Emergency",
+        "message": "Unresponsiveness, seizure, or abnormal breathing is a critical medical emergency. Call 112/108 immediately.",
+        "actions": [
+          "CALL_112",
+          "RECOVERY_POSITION_IF_BREATHING",
+          "START_CPR_IF_NOT_BREATHING",
+          "CLEAR_SURROUNDINGS"
+        ]
+      },
+      "yellow_result": {
+        "title": "Vasovagal Syncope / Medical Evaluation",
+        "message": "Fainting spell recovered. The patient should rest flat with legs elevated and be examined by a doctor today.",
+        "actions": [
+          "LIE_DOWN_ELEVATE_FEET",
+          "SIP_WATER",
+          "VISIT_HEALTHCARE_PROVIDER_TODAY"
+        ]
+      },
+      "green_result": {
+        "title": "Resolved Lightheadedness (Low Risk)",
+        "message": "Consciousness and breathing are normal. Sit quietly, drink cool water, and avoid standing up suddenly.",
+        "actions": [
+          "SIP_WATER",
+          "REST_MONITOR"
+        ]
+      }
+    },
+    "headache": {
+      "protocol_id": "headache",
+      "protocol_name": "Headache & Neurological Red Flags",
+      "version": "3.0_OFFLINE",
+      "trigger_keywords": [
+        "headache",
+        "sir dard",
+        "migraine",
+        "head pain",
+        "dizziness",
+        "thunderclap"
+      ],
+      "questions": [
         {
-          "id": "UNC_RED_ARREST",
-          "severity": "RED",
-          "title": "Immediate CPR Needed",
-          "message": "The person is not responding and not breathing normally. Call 112 or 108 immediately and begin chest compressions in the center of the chest.",
-          "actions": [
-            "CALL_112",
-            "CALL_108",
-            "START_CPR_IMMEDIATELY"
-          ],
-          "stop_assessment": true
+          "id": "ha_001",
+          "text": "How rapidly did this headache reach maximum intensity?",
+          "options": [
+            {
+              "id": "o1",
+              "label": "Explosive 'thunderclap' peak in seconds (worst headache of life)",
+              "severity": "RED"
+            },
+            {
+              "id": "o2",
+              "label": "Built up gradually over several hours with throbbing",
+              "severity": "YELLOW"
+            },
+            {
+              "id": "o3",
+              "label": "Mild constant dull pressure around the forehead/temples",
+              "severity": "GREEN"
+            }
+          ]
         },
         {
-          "id": "UNC_RED_COMA",
-          "severity": "RED",
-          "title": "Keep Airway Safe & Call Help",
-          "message": "The person is sleeping deeply and cannot wake up right now. Gently roll them onto their side (recovery position) so their breathing stays clear, and call for medical transport.",
-          "actions": [
-            "CALL_112",
-            "CALL_108",
-            "PLACE_IN_RECOVERY_POSITION",
-            "DO_NOT_GIVE_ASPIRIN_FOOD_OR_WATER"
-          ],
-          "stop_assessment": true
+          "id": "ha_002",
+          "text": "Are any of these dangerous neurological signs present?",
+          "options": [
+            {
+              "id": "o4",
+              "label": "Stiff painful neck with high fever, confusion, or weakness",
+              "severity": "RED"
+            },
+            {
+              "id": "o5",
+              "label": "Nausea, vomiting, or sensitivity to light and loud sounds",
+              "severity": "YELLOW"
+            },
+            {
+              "id": "o6",
+              "label": "No neck stiffness, no fever, no weakness",
+              "severity": "GREEN"
+            }
+          ]
         },
         {
-          "id": "UNC_RED_ACTIVE_SEIZURE",
-          "severity": "RED",
-          "title": "Seizure Care & Medical Support",
-          "message": "Stay calm. Place a soft pillow or folded cloth under their head. Do not hold them down, and do not put anything in their mouth. Call emergency services to have them evaluated.",
-          "actions": [
-            "CALL_112",
-            "CALL_108"
-          ],
-          "stop_assessment": true
+          "id": "ha_003",
+          "text": "Is vision or speech affected?",
+          "options": [
+            {
+              "id": "o7",
+              "label": "Sudden loss of vision, double vision, or inability to speak",
+              "severity": "RED"
+            },
+            {
+              "id": "o8",
+              "label": "Temporary visual aura (zigzag lights) preceding migraine",
+              "severity": "YELLOW"
+            },
+            {
+              "id": "o9",
+              "label": "Vision and speech are completely normal",
+              "severity": "GREEN"
+            }
+          ]
         },
         {
-          "id": "UNC_RED_PERSISTENT_AMS",
-          "severity": "RED",
-          "title": "Doctor Evaluation Recommended",
-          "message": "Ongoing confusion, memory trouble, or slurred speech after fainting should be evaluated promptly at a hospital to check brain and sugar levels.",
-          "actions": [
-            "CALL_112",
-            "CALL_108"
-          ],
-          "stop_assessment": true
-        },
-        {
-          "id": "UNC_YELLOW_CARDIAC_SYNCOPE",
-          "severity": "YELLOW",
-          "title": "Follow-Up Check Today",
-          "message": "Because there were chest symptoms or a head impact during the fall, having a doctor examine them today is recommended to be safe.",
-          "actions": [
-            "VISIT_HEALTHCARE_PROVIDER_TODAY"
-          ],
-          "stop_assessment": true
-        },
-        {
-          "id": "UNC_GREEN_VASOVAGAL",
-          "severity": "GREEN",
-          "title": "Likely Mild Fainting Spell",
-          "message": "They have recovered well from a brief fainting spell (common from heat, dehydration, or standing up too quickly). Have them rest lying down with feet slightly elevated, and give small sips of water.",
-          "actions": [
-            "LIE_DOWN_ELEVATE_FEET"
-          ],
-          "stop_assessment": true
+          "id": "ha_004",
+          "text": "Is this a brand new type of headache or a known recurring condition?",
+          "options": [
+            {
+              "id": "o10",
+              "label": "First time ever feeling such severe pain (or age over 50)",
+              "severity": "RED"
+            },
+            {
+              "id": "o11",
+              "label": "Similar to previous recurring migraine attacks",
+              "severity": "YELLOW"
+            },
+            {
+              "id": "o12",
+              "label": "Typical mild tension headache after screen time or stress",
+              "severity": "GREEN"
+            }
+          ]
         }
       ],
-      "safety_net": [
-        "Never place keys, water, or fingers into the mouth of someone who is fainting or having a seizure.",
-        "If they feel faint again, have them lie flat on their back immediately."
-      ]
+      "red_result": {
+        "title": "Dangerous Neurological Headache Alert",
+        "message": "Thunderclap onset, neck stiffness with fever, or vision loss requires urgent emergency department neuroimaging (CT/MRI).",
+        "actions": [
+          "CALL_112",
+          "REST_IN_DARK_ROOM",
+          "DO_NOT_TAKE_BLOOD_THINNERS",
+          "GO_TO_EMERGENCY"
+        ]
+      },
+      "yellow_result": {
+        "title": "Migraine / Clinical Headache Evaluation",
+        "message": "Symptoms resemble acute migraine or severe tension headache. Rest in a dark quiet room and consult a doctor.",
+        "actions": [
+          "REST_IN_DARK_ROOM",
+          "SIP_WATER",
+          "VISIT_HEALTHCARE_PROVIDER_TODAY"
+        ]
+      },
+      "green_result": {
+        "title": "Tension / Stress Headache (Mild)",
+        "message": "Mild tension discomfort. Hydrate with water, take a screen break, and apply a cool cloth to the forehead.",
+        "actions": [
+          "REST_MONITOR",
+          "SIP_WATER"
+        ]
+      }
+    },
+    "pregnancy": {
+      "protocol_id": "pregnancy",
+      "protocol_name": "Pregnancy Care & Emergency Check",
+      "version": "3.0_OFFLINE",
+      "trigger_keywords": [
+        "pregnant",
+        "pregnancy",
+        "garbhavati",
+        "labor",
+        "delivery",
+        "contractions",
+        "water broke"
+      ],
+      "questions": [
+        {
+          "id": "prg_001",
+          "text": "What stage of pregnancy is the patient in?",
+          "options": [
+            {
+              "id": "o1",
+              "label": "Third trimester (months 7\u20139 / 28+ weeks)",
+              "severity": "YELLOW"
+            },
+            {
+              "id": "o2",
+              "label": "Second trimester (months 4\u20136 / 13\u201327 weeks)",
+              "severity": "YELLOW"
+            },
+            {
+              "id": "o3",
+              "label": "First trimester (months 1\u20133 / 1\u201312 weeks)",
+              "severity": "GREEN"
+            }
+          ]
+        },
+        {
+          "id": "prg_002",
+          "text": "Are any urgent obstetric warning signs present?",
+          "options": [
+            {
+              "id": "o4",
+              "label": "Heavy vaginal bleeding, severe constant abdominal pain, or sudden water break",
+              "severity": "RED"
+            },
+            {
+              "id": "o5",
+              "label": "Severe headache with blurry vision and sudden hand/facial swelling (preeclampsia signs)",
+              "severity": "RED"
+            },
+            {
+              "id": "o6",
+              "label": "Mild lower back ache or light Braxton-Hicks tightening that stops with rest",
+              "severity": "GREEN"
+            }
+          ]
+        },
+        {
+          "id": "prg_003",
+          "text": "How are the baby's movements (if after 24 weeks)?",
+          "options": [
+            {
+              "id": "o7",
+              "label": "Noticeably decreased or no movement felt for several hours",
+              "severity": "RED"
+            },
+            {
+              "id": "o8",
+              "label": "Normal active kicks, rolls, and movements",
+              "severity": "GREEN"
+            },
+            {
+              "id": "o9",
+              "label": "Not applicable (early first trimester)",
+              "severity": "GREEN"
+            }
+          ]
+        },
+        {
+          "id": "prg_004",
+          "text": "Are regular contractions occurring?",
+          "options": [
+            {
+              "id": "o10",
+              "label": "Strong painful contractions every 3 to 5 minutes",
+              "severity": "RED"
+            },
+            {
+              "id": "o11",
+              "label": "Irregular mild cramps that ease when lying on left side",
+              "severity": "YELLOW"
+            },
+            {
+              "id": "o12",
+              "label": "No contractions or labor pains",
+              "severity": "GREEN"
+            }
+          ]
+        }
+      ],
+      "red_result": {
+        "title": "Obstetric Emergency Alert (Immediate Hospital Care)",
+        "message": "High-risk pregnancy red flags detected. Proceed immediately to the nearest maternity hospital labor room or call 112/108.",
+        "actions": [
+          "CALL_112",
+          "LIE_ON_LEFT_SIDE",
+          "GO_TO_MATERNITY_HOSPITAL"
+        ]
+      },
+      "yellow_result": {
+        "title": "Obstetrician / Clinic Consultation Advised Today",
+        "message": "Moderate pregnancy discomfort. Lie on the left side, hydrate, and have your obstetrician evaluate you today.",
+        "actions": [
+          "LIE_ON_LEFT_SIDE",
+          "SIP_WATER",
+          "VISIT_HEALTHCARE_PROVIDER_TODAY"
+        ]
+      },
+      "green_result": {
+        "title": "Stable Pregnancy Progress (Routine Care)",
+        "message": "No critical obstetric emergency flags detected. Rest comfortably, stay hydrated, and attend regular antenatal checkups.",
+        "actions": [
+          "REST_MONITOR",
+          "SIP_WATER"
+        ]
+      }
+    },
+    "menstrual": {
+      "protocol_id": "menstrual",
+      "protocol_name": "Menstrual Comfort & Flow Check",
+      "version": "3.0_OFFLINE",
+      "trigger_keywords": [
+        "menstrual",
+        "period",
+        "periods",
+        "mahavari",
+        "cramps",
+        "heavy flow",
+        "bleeding"
+      ],
+      "questions": [
+        {
+          "id": "men_001",
+          "text": "How heavy is the menstrual flow currently?",
+          "options": [
+            {
+              "id": "o1",
+              "label": "Soaking through 2+ large sanitary pads/tampons every hour for 2+ hours",
+              "severity": "RED"
+            },
+            {
+              "id": "o2",
+              "label": "Passing large blood clots (larger than a coin) with heavy flow",
+              "severity": "YELLOW"
+            },
+            {
+              "id": "o3",
+              "label": "Moderate or light monthly period flow",
+              "severity": "GREEN"
+            }
+          ]
+        },
+        {
+          "id": "men_002",
+          "text": "Is the person experiencing severe dizziness, fainting, or extreme weakness?",
+          "options": [
+            {
+              "id": "o4",
+              "label": "Fainted, extremely dizzy when standing, or lips/fingers very pale",
+              "severity": "RED"
+            },
+            {
+              "id": "o5",
+              "label": "Mild tiredness, sluggishness, or light headache",
+              "severity": "YELLOW"
+            },
+            {
+              "id": "o6",
+              "label": "Feeling generally well and alert",
+              "severity": "GREEN"
+            }
+          ]
+        },
+        {
+          "id": "men_003",
+          "text": "How severe is the lower abdominal or pelvic cramping pain?",
+          "options": [
+            {
+              "id": "o7",
+              "label": "Incapacitating severe sharp pain preventing standing or moving",
+              "severity": "RED"
+            },
+            {
+              "id": "o8",
+              "label": "Moderate monthly cramps relieved by hot water bag or rest",
+              "severity": "YELLOW"
+            },
+            {
+              "id": "o9",
+              "label": "Mild discomfort or no cramping",
+              "severity": "GREEN"
+            }
+          ]
+        },
+        {
+          "id": "men_004",
+          "text": "How long has this bleeding episode lasted?",
+          "options": [
+            {
+              "id": "o10",
+              "label": "Continuous heavy bleeding for more than 7-8 days",
+              "severity": "YELLOW"
+            },
+            {
+              "id": "o11",
+              "label": "Within standard 3 to 5 day period cycle",
+              "severity": "GREEN"
+            },
+            {
+              "id": "o12",
+              "label": "First or second day of regular cycle",
+              "severity": "GREEN"
+            }
+          ]
+        }
+      ],
+      "red_result": {
+        "title": "Severe Menorrhagia / Acute Pelvic Emergency",
+        "message": "Extremely heavy blood loss or severe pelvic pain requires urgent gynecological assessment and fluid stabilization.",
+        "actions": [
+          "CALL_112",
+          "LIE_DOWN_ELEVATE_FEET",
+          "SIP_ORS_IF_CONSCIOUS",
+          "VISIT_EMERGENCY_GYN"
+        ]
+      },
+      "yellow_result": {
+        "title": "Gynecological Evaluation Recommended Today",
+        "message": "Heavy menstrual bleeding or significant cramps should be evaluated by a healthcare professional or gynecologist.",
+        "actions": [
+          "VISIT_HEALTHCARE_PROVIDER_TODAY",
+          "REST_MONITOR",
+          "USE_HOT_WATER_BAG"
+        ]
+      },
+      "green_result": {
+        "title": "Normal Menstrual Symptoms (Home Comfort)",
+        "message": "Symptoms align with standard menstrual cycle. Use a hot water bottle for comfort, stay hydrated, and rest.",
+        "actions": [
+          "USE_HOT_WATER_BAG",
+          "SIP_WATER",
+          "REST_MONITOR"
+        ]
+      }
+    },
+    "general": {
+      "protocol_id": "general",
+      "protocol_name": "General Health Assessment",
+      "version": "3.0_OFFLINE",
+      "trigger_keywords": [
+        "fever",
+        "bukhaar",
+        "vomit",
+        "vomiting",
+        "loose motion",
+        "diarrhea",
+        "nausea",
+        "stomach pain",
+        "allergy",
+        "rash",
+        "infection",
+        "weakness"
+      ],
+      "questions": [
+        {
+          "id": "gen_001",
+          "text": "What is the primary physical complaint or symptom?",
+          "options": [
+            {
+              "id": "o1",
+              "label": "High fever with chills, body ache, or shivering",
+              "severity": "YELLOW"
+            },
+            {
+              "id": "o2",
+              "label": "Stomach pain, persistent vomiting, or loose motions",
+              "severity": "YELLOW"
+            },
+            {
+              "id": "o3",
+              "label": "Skin rash, hives, localized swelling, or itching",
+              "severity": "YELLOW"
+            },
+            {
+              "id": "o4",
+              "label": "Mild cold, sore throat, or general tiredness",
+              "severity": "GREEN"
+            }
+          ]
+        },
+        {
+          "id": "gen_002",
+          "text": "Are any of these emergency danger signs present?",
+          "options": [
+            {
+              "id": "o5",
+              "label": "Difficulty breathing, confusion, chest tightness, or blue lips",
+              "severity": "RED"
+            },
+            {
+              "id": "o6",
+              "label": "Unable to keep fluids down for 24h, high fever over 103\u00b0F (39.5\u00b0C), or neck stiffness",
+              "severity": "RED"
+            },
+            {
+              "id": "o7",
+              "label": "Persistent symptoms but able to drink liquids and speak clearly",
+              "severity": "YELLOW"
+            },
+            {
+              "id": "o8",
+              "label": "None of these severe signs present",
+              "severity": "GREEN"
+            }
+          ]
+        },
+        {
+          "id": "gen_003",
+          "text": "How long have these symptoms been present?",
+          "options": [
+            {
+              "id": "o9",
+              "label": "Rapidly worsening in the last few hours",
+              "severity": "RED"
+            },
+            {
+              "id": "o10",
+              "label": "Present for 1 to 3 days",
+              "severity": "YELLOW"
+            },
+            {
+              "id": "o11",
+              "label": "Mild symptom starting today or improving",
+              "severity": "GREEN"
+            }
+          ]
+        },
+        {
+          "id": "gen_004",
+          "text": "Does the patient belong to a high-risk group (infant, elderly, pregnant, or chronic illness)?",
+          "options": [
+            {
+              "id": "o12",
+              "label": "Yes (Infant under 6 months, elderly over 70, or diabetic/heart patient)",
+              "severity": "YELLOW"
+            },
+            {
+              "id": "o13",
+              "label": "Moderate condition under control",
+              "severity": "GREEN"
+            },
+            {
+              "id": "o14",
+              "label": "Generally healthy young adult",
+              "severity": "GREEN"
+            }
+          ]
+        }
+      ],
+      "red_result": {
+        "title": "High-Priority Medical Emergency Alert",
+        "message": "Critical symptoms detected. Immediate clinical assessment and emergency medical care (112 / 108) is advised.",
+        "actions": [
+          "CALL_112",
+          "REST_DO_NOT_EXERT",
+          "MONITOR_BREATHING",
+          "VISIT_EMERGENCY"
+        ]
+      },
+      "yellow_result": {
+        "title": "Clinical Consultation Recommended Today",
+        "message": "Moderate illness symptoms detected. Visit a local clinic or Primary Health Centre today for diagnosis and prescription.",
+        "actions": [
+          "VISIT_HEALTHCARE_PROVIDER_TODAY",
+          "USE_ORAL_REHYDRATION_SALTS",
+          "REST_MONITOR"
+        ]
+      },
+      "green_result": {
+        "title": "Mild Health Symptoms (Home Care & Observation)",
+        "message": "Symptoms appear mild and manageable. Rest, drink plenty of fluids, and monitor for any changes.",
+        "actions": [
+          "REST_MONITOR",
+          "SIP_WATER",
+          "CONSULT_PRIMARY_DOCTOR"
+        ]
+      }
     }
   },
   "actions": {
     "CALL_112": {
-      "label": "Call National Emergency (112)",
-      "intent_uri": "tel:112",
-      "network_type": "GSM_VOICE_NO_DATA_REQUIRED",
+      "label": "Call 112 / 108 Emergency",
+      "action_type": "EMS_DISPATCH",
       "priority": 1,
-      "instruction": "Tap to dial 112 immediately. Works on basic cellular signals without internet data."
+      "instruction": "Dial 112 or 108 immediately to request an ambulance."
     },
-    "CALL_108": {
-      "label": "Call Ambulance Services (108)",
-      "intent_uri": "tel:108",
-      "network_type": "GSM_VOICE_NO_DATA_REQUIRED",
+    "REST_DO_NOT_EXERT": {
+      "label": "Absolute Rest",
+      "action_type": "IMMEDIATE_CARE",
       "priority": 1,
-      "instruction": "Dial 108 for government emergency ambulance transport."
+      "instruction": "Sit or recline in a comfortable position. Do not walk, climb stairs, or exert physically."
     },
-    "START_CPR_IMMEDIATELY": {
-      "label": "Begin CPR (Cardiopulmonary Resuscitation)",
-      "action_type": "FIRST_AID",
-      "priority": 1,
-      "instruction": "1. Lay person flat on their back.\n2. Push hard and fast in the center of the chest (100 to 120 beats/minute).\n3. Do not stop until help arrives."
-    },
-    "PLACE_IN_RECOVERY_POSITION": {
-      "label": "Place in Recovery Position",
-      "action_type": "FIRST_AID",
+    "LOOSEN_TIGHT_CLOTHING": {
+      "label": "Loosen Clothing",
+      "action_type": "IMMEDIATE_CARE",
       "priority": 2,
-      "instruction": "Roll the person onto their side facing you. Tilt their head back slightly so vomit drains away from the windpipe."
+      "instruction": "Unbutton collar, loosen belt, and ensure open airflow around the patient."
     },
-    "APPLY_DIRECT_FIRM_PRESSURE": {
-      "label": "Apply Direct Firm Pressure",
-      "action_type": "FIRST_AID",
-      "priority": 1,
-      "instruction": "Press down hard on the bleeding wound with a clean cloth, towel, or your hands. Keep continuous pressure without lifting."
-    },
-    "DO_NOT_GIVE_ASPIRIN_FOOD_OR_WATER": {
-      "label": "Nothing By Mouth (NPO)",
-      "action_type": "PRECAUTION",
+    "ASPIRIN_IF_PRESCRIBED": {
+      "label": "Aspirin Guidance",
+      "action_type": "MEDICATION_GUIDANCE",
       "priority": 2,
-      "instruction": "Do not administer food, water, tea, or blood-thinners. Swallowing reflexes may be lost, creating a choking hazard."
+      "instruction": "If prescribed by a physician and not allergic, chew 300mg soluble aspirin."
+    },
+    "RECORD_TIME_OF_ONSET": {
+      "label": "Note Time of First Symptom",
+      "action_type": "CLINICAL_TIMING",
+      "priority": 1,
+      "instruction": "Write down the exact minute symptoms began for the stroke team."
+    },
+    "LIE_PATIENT_ON_SIDE": {
+      "label": "Recovery Position",
+      "action_type": "AIRWAY_MANAGEMENT",
+      "priority": 1,
+      "instruction": "Place patient in recovery position on their side to prevent choking on saliva or vomit."
+    },
+    "DO_NOT_GIVE_FOOD_OR_WATER": {
+      "label": "Nil by Mouth",
+      "action_type": "SAFETY_PRECAUTION",
+      "priority": 1,
+      "instruction": "Do not give any food, water, or medication by mouth as swallowing may be impaired."
     },
     "SIT_UPRIGHT_DO_NOT_LIE_FLAT": {
-      "label": "Sit Upright Immediately",
-      "action_type": "FIRST_AID",
+      "label": "Sit Upright for Breathing",
+      "action_type": "RESPIRATORY_SUPPORT",
+      "priority": 1,
+      "instruction": "Support patient in an upright sitting position. Never force them to lie flat."
+    },
+    "SIP_ORS_IF_CONSCIOUS": {
+      "label": "Oral Rehydration (ORS)",
+      "action_type": "HYDRATION",
       "priority": 2,
-      "instruction": "Have the person sit fully upright leaning forward slightly. Lying flat will worsen breathing difficulty."
+      "instruction": "Give frequent small sips of Oral Rehydration Solution (ORS) or clean water."
+    },
+    "KEEP_AIRWAY_OPEN": {
+      "label": "Maintain Clear Airway",
+      "action_type": "AIRWAY_MANAGEMENT",
+      "priority": 1,
+      "instruction": "Ensure neck is neutral and airway is clear of any obstruction."
+    },
+    "APPLY_DIRECT_FIRM_PRESSURE": {
+      "label": "Direct Firm Pressure",
+      "action_type": "HEMOSTASIS",
+      "priority": 1,
+      "instruction": "Press firmly on the wound with a clean towel without lifting to check."
+    },
+    "ELEVATE_WOUND_IF_NO_FRACTURE": {
+      "label": "Elevate Injured Limb",
+      "action_type": "HEMOSTASIS",
+      "priority": 2,
+      "instruction": "Raise the bleeding limb above the level of the heart if no bone fracture is suspected."
     },
     "LIE_DOWN_ELEVATE_FEET": {
-      "label": "Lie Down & Elevate Feet",
-      "action_type": "FIRST_AID",
-      "priority": 2,
-      "instruction": "Have patient lie flat on their back and elevate legs 30 cm to improve blood circulation to the brain."
+      "label": "Elevate Legs for Shock",
+      "action_type": "SHOCK_MANAGEMENT",
+      "priority": 1,
+      "instruction": "Lie patient flat and elevate legs 12 inches on pillows to maintain blood flow to brain."
     },
-    "USE_ORAL_REHYDRATION_SALTS": {
-      "label": "Administer Oral Rehydration Solution (ORS)",
-      "action_type": "SELF_CARE",
+    "DRESS_CLEAN_BANDAGE": {
+      "label": "Sterile Dressing",
+      "action_type": "WOUND_CARE",
       "priority": 3,
-      "instruction": "Mix 1 packet ORS into 1 liter of clean water (or pinch of salt and fist of sugar in clean water). Give frequent small sips."
+      "instruction": "Cover with a clean sterile dressing or clean cloth to prevent infection."
+    },
+    "RECOVERY_POSITION_IF_BREATHING": {
+      "label": "Recovery Position",
+      "action_type": "AIRWAY_MANAGEMENT",
+      "priority": 1,
+      "instruction": "Turn patient onto their side with upper leg bent to keep airway open."
+    },
+    "START_CPR_IF_NOT_BREATHING": {
+      "label": "CPR (Cardiopulmonary Resuscitation)",
+      "action_type": "LIFE_SUPPORT",
+      "priority": 1,
+      "instruction": "If not breathing, push hard and fast in center of chest at 100-120 beats per minute."
+    },
+    "CLEAR_SURROUNDINGS": {
+      "label": "Clear Sharp Objects",
+      "action_type": "SAFETY_PRECAUTION",
+      "priority": 1,
+      "instruction": "Move hard, hot, or sharp objects away from patient to prevent trauma during seizures."
+    },
+    "REST_IN_DARK_ROOM": {
+      "label": "Dark, Quiet Environment",
+      "action_type": "SYMPTOM_RELIEF",
+      "priority": 2,
+      "instruction": "Rest in a cool, dark, quiet room with minimal screen or sound exposure."
+    },
+    "DO_NOT_TAKE_BLOOD_THINNERS": {
+      "label": "Avoid Blood Thinners",
+      "action_type": "SAFETY_PRECAUTION",
+      "priority": 1,
+      "instruction": "Do not take aspirin or ibuprofen until evaluated by emergency doctor."
+    },
+    "GO_TO_EMERGENCY": {
+      "label": "Emergency Department Transfer",
+      "action_type": "HOSPITAL_TRANSFER",
+      "priority": 1,
+      "instruction": "Proceed immediately to the nearest hospital with 24/7 emergency facilities."
+    },
+    "LIE_ON_LEFT_SIDE": {
+      "label": "Lie on Left Side",
+      "action_type": "OBSTETRIC_CARE",
+      "priority": 1,
+      "instruction": "Lie on the left side to maximize oxygenated blood flow to placenta and baby."
+    },
+    "GO_TO_MATERNITY_HOSPITAL": {
+      "label": "Maternity Labor Ward",
+      "action_type": "HOSPITAL_TRANSFER",
+      "priority": 1,
+      "instruction": "Transfer directly to the nearest maternity hospital labor and delivery department."
+    },
+    "USE_HOT_WATER_BAG": {
+      "label": "Warm Compress",
+      "action_type": "SYMPTOM_RELIEF",
+      "priority": 3,
+      "instruction": "Apply a warm water bag or heating pad to lower abdomen for cramp relief."
+    },
+    "VISIT_EMERGENCY_GYN": {
+      "label": "Urgent Gynecological Care",
+      "action_type": "CLINICAL_REFERRAL",
+      "priority": 1,
+      "instruction": "Seek immediate gynecological evaluation at the nearest health center."
     },
     "VISIT_HEALTHCARE_PROVIDER_TODAY": {
       "label": "Consult Doctor or Clinic Today",
       "action_type": "CLINICAL_REFERRAL",
+      "priority": 2,
+      "instruction": "Visit a Primary Health Centre (PHC), clinic, or hospital outpatient department today."
+    },
+    "REST_MONITOR": {
+      "label": "Rest & Observation",
+      "action_type": "GENERAL_CARE",
       "priority": 3,
-      "instruction": "Proceed to the nearest Primary Health Centre (PHC) or clinic within 4 to 6 hours."
+      "instruction": "Rest quietly and monitor vital signs for any changes or worsening."
+    },
+    "SIP_WATER": {
+      "label": "Hydrate with Clean Water",
+      "action_type": "HYDRATION",
+      "priority": 3,
+      "instruction": "Drink clean, boiled, or bottled water in small frequent amounts."
+    },
+    "USE_ORAL_REHYDRATION_SALTS": {
+      "label": "Oral Rehydration Salts (ORS)",
+      "action_type": "HYDRATION",
+      "priority": 2,
+      "instruction": "Mix 1 packet ORS in 1 liter clean water. Sip continuously throughout the day."
+    },
+    "CONSULT_PRIMARY_DOCTOR": {
+      "label": "Routine Doctor Checkup",
+      "action_type": "GENERAL_CARE",
+      "priority": 3,
+      "instruction": "Schedule a routine consultation with your family physician if symptoms do not improve."
+    },
+    "MONITOR_BREATHING": {
+      "label": "Monitor Respiration",
+      "action_type": "VITAL_CHECK",
+      "priority": 1,
+      "instruction": "Check breathing rate and ensure airway remains open and unhindered."
+    },
+    "VISIT_EMERGENCY": {
+      "label": "Emergency Room Evaluation",
+      "action_type": "EMS_DISPATCH",
+      "priority": 1,
+      "instruction": "Proceed to the nearest emergency hospital immediately."
     }
   }
 };
 
 // =========================================================
-// STANDALONE RESILIENT TRIAGE ENGINE
+// STANDALONE RESILIENT MULTI-STEP TRIAGE CONTROLLER
 // =========================================================
 window.LifelineTriage = (() => {
     const $ = id => document.getElementById(id);
@@ -1471,11 +1380,9 @@ window.LifelineTriage = (() => {
         type: null, // 'protocol' | 'ai'
         protocolId: null,
         protocolData: null,
-        currentQuestionId: null,
-        history: [],
-        aiQuestions: [],
-        aiCurrentIndex: 0,
-        aiAnswers: [],
+        questions: [],
+        currentIndex: 0,
+        answers: [],
         aiData: null,
         complaint: ""
     };
@@ -1513,7 +1420,7 @@ window.LifelineTriage = (() => {
 
         const prompt = `You are LIFELINE AI emergency triage assistant for India.
 Patient complaint: "${complaint}".
-Generate 3 focused triage questions with single-choice options to determine emergency severity (RED: call 112/108, YELLOW: visit clinic today, GREEN: home care).
+Generate 3 focused, practical triage questions with single-choice options to determine emergency severity (RED: call 112/108, YELLOW: visit clinic today, GREEN: home care).
 
 STRICT JSON OUTPUT ONLY:
 {
@@ -1521,7 +1428,7 @@ STRICT JSON OUTPUT ONLY:
   "questions": [
     {
       "id": "q1",
-      "text": "Question evaluating immediate danger signs?",
+      "text": "Question evaluating immediate danger signs or severity?",
       "options": [
         {"id": "o1", "label": "Severe danger sign (e.g. trouble breathing, fainting, severe pain)", "severity": "RED"},
         {"id": "o2", "label": "Moderate symptom (e.g. localized discomfort, mild nausea)", "severity": "YELLOW"},
@@ -1533,17 +1440,17 @@ STRICT JSON OUTPUT ONLY:
       "text": "Question evaluating symptom duration or progression?",
       "options": [
         {"id": "o4", "label": "Rapidly worsening or spreading", "severity": "RED"},
-        {"id": "o5", "label": "Stable or mild", "severity": "YELLOW"},
-        {"id": "o6", "label": "Already improving", "severity": "GREEN"}
+        {"id": "o5", "label": "Stable or moderate for a few days", "severity": "YELLOW"},
+        {"id": "o6", "label": "Mild or already improving", "severity": "GREEN"}
       ]
     },
     {
       "id": "q3",
-      "text": "Question evaluating secondary risk factors?",
+      "text": "Question evaluating secondary risk factors or patient vulnerability?",
       "options": [
-        {"id": "o7", "label": "High risk factor present", "severity": "RED"},
-        {"id": "o8", "label": "Moderate risk", "severity": "YELLOW"},
-        {"id": "o9", "label": "Low risk / otherwise healthy", "severity": "GREEN"}
+        {"id": "o7", "label": "High risk factor (infant, elderly, severe chronic condition)", "severity": "RED"},
+        {"id": "o8", "label": "Moderate risk condition", "severity": "YELLOW"},
+        {"id": "o9", "label": "Low risk / otherwise healthy adult", "severity": "GREEN"}
       ]
     }
   ],
@@ -1601,8 +1508,8 @@ STRICT JSON OUTPUT ONLY:
         $("triage-result-card")?.classList.add("hidden");
         $("triage-question-card")?.classList.remove("hidden");
 
-        state.history = [];
-        state.aiAnswers = [];
+        state.answers = [];
+        state.currentIndex = 0;
         state.complaint = complaint;
 
         let targetProto = protocol;
@@ -1616,8 +1523,8 @@ STRICT JSON OUTPUT ONLY:
             state.type = "protocol";
             state.protocolId = targetProto;
             state.protocolData = protocols[targetProto];
-            state.currentQuestionId = protocols[targetProto].entry_question;
-            renderProtocolQuestion();
+            state.questions = protocols[targetProto].questions || [];
+            renderCurrentQuestion();
             return;
         }
 
@@ -1632,9 +1539,8 @@ STRICT JSON OUTPUT ONLY:
                 const aiData = await generateAITriageQuestions(complaint);
                 state.type = "ai";
                 state.aiData = aiData;
-                state.aiQuestions = aiData.questions || [];
-                state.aiCurrentIndex = 0;
-                renderAIQuestion();
+                state.questions = aiData.questions || [];
+                renderCurrentQuestion();
                 return;
             } catch (err) {
                 console.warn("[LifelineTriage] Dynamic AI generation failed, falling back to General protocol:", err);
@@ -1645,34 +1551,37 @@ STRICT JSON OUTPUT ONLY:
         state.type = "protocol";
         state.protocolId = generalProto?.protocol_id || "general";
         state.protocolData = generalProto;
-        state.currentQuestionId = generalProto?.entry_question || "gen_001";
-        renderProtocolQuestion();
+        state.questions = generalProto?.questions || [];
+        renderCurrentQuestion();
     }
 
-    function renderProtocolQuestion() {
-        const proto = state.protocolData;
-        if (!proto) return;
+    function renderCurrentQuestion() {
+        const questions = state.questions || [];
+        const idx = state.currentIndex;
 
-        const q = (proto.questions || []).find(item => item.id === state.currentQuestionId) || proto.questions?.[0];
-        if (!q) {
-            compileAndRenderProtocolResult("GEN_YELLOW_DOCTOR");
+        if (!questions.length || idx >= questions.length) {
+            compileAndRenderResult();
             return;
         }
 
-        if ($("badge-proto-name")) $("badge-proto-name").textContent = proto.protocol_name || "Emergency Triage";
-        const totalQ = proto.questions?.length || 4;
-        const currentIdx = state.history.length + 1;
-        if ($("question-progress")) $("question-progress").textContent = `Question ${currentIdx} of ${Math.max(currentIdx, totalQ)}`;
+        const q = questions[idx];
+        const title = state.type === "protocol" ? (state.protocolData?.protocol_name || "Emergency Triage") : (state.aiData?.protocol_name || "AI Clinical Triage");
+        
+        if ($("badge-proto-name")) $("badge-proto-name").textContent = title;
+        if ($("question-progress")) $("question-progress").textContent = `Question ${idx + 1} of ${questions.length}`;
         if ($("triage-question-text")) $("triage-question-text").textContent = q.text || "";
 
         const list = $("triage-options-list");
         if (!list) return;
         list.innerHTML = "";
 
+        const existingAnswer = state.answers[idx];
+
         (q.options || []).forEach((opt, i) => {
+            const isSelected = existingAnswer ? (existingAnswer.optionId === opt.id) : (i === 0);
             const label = document.createElement("label");
-            label.className = "triage-option" + (i === 0 ? " selected" : "");
-            label.innerHTML = `<input type="radio" name="triage-opt" value="${escapeAttr(opt.id)}" ${i === 0 ? "checked" : ""}><span>${escapeHtml(opt.label)}</span>`;
+            label.className = "triage-option" + (isSelected ? " selected" : "");
+            label.innerHTML = `<input type="radio" name="triage-opt" value="${escapeAttr(opt.id)}" data-severity="${escapeAttr(opt.severity || 'YELLOW')}" data-label="${escapeAttr(opt.label)}" ${isSelected ? "checked" : ""}><span>${escapeHtml(opt.label)}</span>`;
             
             label.addEventListener("click", () => {
                 list.querySelectorAll(".triage-option").forEach(o => o.classList.remove("selected"));
@@ -1684,63 +1593,19 @@ STRICT JSON OUTPUT ONLY:
             list.appendChild(label);
         });
 
-        if ($("btn-next-question")) $("btn-next-question").disabled = false;
-        if ($("btn-back-question")) $("btn-back-question").disabled = state.history.length === 0;
-    }
-
-    function renderAIQuestion() {
-        const questions = state.aiQuestions;
-        const idx = state.aiCurrentIndex;
-        if (!questions || idx >= questions.length) {
-            compileAndRenderAIResult();
-            return;
+        if ($("btn-next-question")) {
+            $("btn-next-question").disabled = false;
+            const isLast = (idx === questions.length - 1);
+            $("btn-next-question").innerHTML = isLast ? `Complete Assessment <span>✓</span>` : `Continue <span>→</span>`;
         }
-
-        const q = questions[idx];
-        if ($("badge-proto-name")) $("badge-proto-name").textContent = state.aiData?.protocol_name || "AI Clinical Assessment";
-        if ($("question-progress")) $("question-progress").textContent = `Question ${idx + 1} of ${questions.length}`;
-        if ($("triage-question-text")) $("triage-question-text").textContent = q.text;
-
-        const list = $("triage-options-list");
-        if (!list) return;
-        list.innerHTML = "";
-
-        (q.options || []).forEach((opt, i) => {
-            const label = document.createElement("label");
-            label.className = "triage-option" + (i === 0 ? " selected" : "");
-            label.innerHTML = `<input type="radio" name="triage-opt" value="${escapeAttr(opt.id)}" data-severity="${escapeAttr(opt.severity || 'YELLOW')}" ${i === 0 ? "checked" : ""}><span>${escapeHtml(opt.label)}</span>`;
-            
-            label.addEventListener("click", () => {
-                list.querySelectorAll(".triage-option").forEach(o => o.classList.remove("selected"));
-                label.classList.add("selected");
-                const radio = label.querySelector("input");
-                if (radio) radio.checked = true;
-            });
-
-            list.appendChild(label);
-        });
-
-        if ($("btn-next-question")) $("btn-next-question").disabled = false;
         if ($("btn-back-question")) $("btn-back-question").disabled = idx === 0;
     }
 
     function back() {
-        if (state.type === "protocol") {
-            if (state.history.length > 0) {
-                const prev = state.history.pop();
-                state.currentQuestionId = prev.questionId;
-                renderProtocolQuestion();
-            } else {
-                reset();
-            }
-        } else if (state.type === "ai") {
-            if (state.aiCurrentIndex > 0) {
-                state.aiCurrentIndex--;
-                state.aiAnswers.pop();
-                renderAIQuestion();
-            } else {
-                reset();
-            }
+        if (state.currentIndex > 0) {
+            state.currentIndex--;
+            state.answers.pop();
+            renderCurrentQuestion();
         } else {
             reset();
         }
@@ -1754,136 +1619,79 @@ STRICT JSON OUTPUT ONLY:
         }
         if (!selected) return;
 
-        if (!state.type) {
-            state.type = (state.aiQuestions && state.aiQuestions.length > 0) ? "ai" : "protocol";
-        }
-        if (state.type === "protocol" && !state.protocolData) {
-            const protocols = window.LifelineTriageData?.protocols || {};
-            state.protocolData = protocols[state.protocolId] || protocols["general"] || Object.values(protocols)[0];
-            state.currentQuestionId = state.currentQuestionId || state.protocolData?.entry_question;
-        }
+        const currentQ = state.questions[state.currentIndex];
+        const severity = selected.dataset?.severity || "YELLOW";
+        const label = selected.dataset?.label || selected.value;
 
-        if (state.type === "protocol") {
-            const proto = state.protocolData;
-            const q = (proto.questions || []).find(item => item.id === state.currentQuestionId) || proto.questions?.[0];
-            if (!q) { compileAndRenderProtocolResult("GEN_YELLOW_DOCTOR"); return; }
+        state.answers[state.currentIndex] = {
+            questionId: currentQ?.id || `q_${state.currentIndex}`,
+            questionText: currentQ?.text || "",
+            optionId: selected.value,
+            optionLabel: label,
+            severity: severity
+        };
 
-            const opt = (q.options || []).find(o => o.id === selected.value) || q.options[0];
-            const nextNode = opt ? opt.next : null;
-
-            state.history.push({
-                questionId: q.id,
-                optionId: opt ? opt.id : "opt",
-                optionLabel: opt ? opt.label : selected.value
-            });
-
-            if (nextNode && nextNode.startsWith("SWITCH_TO_")) {
-                let target = nextNode.replace("SWITCH_TO_", "").toLowerCase();
-                if (target === "chest") target = "chest_pain";
-                if (target === "breathing") target = "breathing_dehydration";
-                if (target === "unconscious" || target === "unconsciousness") target = "unconsciousness_adult";
-                if (target === "bleed") target = "bleeding";
-                if (target === "menstruation") target = "menstrual";
-                const protos = window.LifelineTriageData?.protocols || {};
-                if (protos[target]) {
-                    start("", target);
-                    return;
-                }
-            }
-
-            const isNextQuestion = proto.questions && proto.questions.some(item => item.id === nextNode);
-            const isOutcome = !nextNode || !isNextQuestion;
-
-            if (isOutcome) {
-                compileAndRenderProtocolResult(nextNode || "GEN_YELLOW_DOCTOR");
-            } else {
-                state.currentQuestionId = nextNode;
-                renderProtocolQuestion();
-            }
-        } else if (state.type === "ai") {
-            const severity = selected.dataset?.severity || "YELLOW";
-            const q = state.aiQuestions[state.aiCurrentIndex];
-            if (!q) { compileAndRenderAIResult(); return; }
-            const opt = (q.options || []).find(o => o.id === selected.value);
-
-            state.aiAnswers.push({
-                question: q.text,
-                answer: opt ? opt.label : selected.value,
-                severity: severity
-            });
-
-            state.aiCurrentIndex++;
-            if (state.aiCurrentIndex >= state.aiQuestions.length) {
-                compileAndRenderAIResult();
-            } else {
-                renderAIQuestion();
-            }
+        state.currentIndex++;
+        if (state.currentIndex >= state.questions.length) {
+            compileAndRenderResult();
+        } else {
+            renderCurrentQuestion();
         }
     }
 
-    function compileAndRenderProtocolResult(resultId) {
-        const proto = state.protocolData;
+    function compileAndRenderResult() {
         const allActions = window.LifelineTriageData?.actions || {};
-
-        let resObj = (proto?.results || []).find(r => r.id === resultId);
-        if (!resObj) {
-            const sev = resultId.includes("RED") ? "RED" : (resultId.includes("YELLOW") ? "YELLOW" : "GREEN");
-            resObj = {
-                id: resultId,
-                severity: sev,
-                title: proto?.protocol_name ? `${proto.protocol_name} Assessment` : "Clinical Assessment Result",
-                message: sev === "RED" ? "Immediate medical emergency signs detected. Call 112 or 108 without delay." : "Clinical evaluation is recommended based on reported symptoms.",
-                actions: sev === "RED" ? ["CALL_112", "REST_MONITOR"] : ["VISIT_HEALTHCARE_PROVIDER_TODAY"]
-            };
-        }
-
-        const actions = (resObj.actions || []).map(actId => {
-            const actData = allActions[actId] || {};
-            return {
-                id: actId,
-                label: actData.label || actId.replace(/_/g, " "),
-                instruction: actData.instruction || "Take immediate precautions and monitor vital signs."
-            };
-        });
-
-        const verbalScript = resObj.severity === "RED" ?
-            `I need an ambulance immediately. The patient is experiencing ${resObj.title.toLowerCase()}. Symptoms: ${state.history.map(h => h.optionLabel).join(", ")}.` :
-            `Patient presenting with ${resObj.title.toLowerCase()}. Clinically stable for evaluation.`;
-
-        renderResultCard({
-            title: resObj.title,
-            severity: resObj.severity || "YELLOW",
-            message: resObj.message,
-            actions: actions,
-            verbal_script: { script: verbalScript }
-        });
-    }
-
-    function compileAndRenderAIResult() {
-        const answers = state.aiAnswers || [];
+        const answers = state.answers || [];
         const hasRed = answers.some(a => a.severity === "RED");
         const hasYellow = answers.some(a => a.severity === "YELLOW");
 
         const severity = hasRed ? "RED" : (hasYellow ? "YELLOW" : "GREEN");
-        const title = state.aiData?.protocol_name || `${state.complaint || "Medical"} Assessment`;
+        const proto = state.protocolData;
 
-        let message = severity === "RED" ?
-            "High-urgency emergency indicators detected. Immediate professional medical care and ambulance dispatch (112 / 108) is strongly advised." :
-            (severity === "YELLOW" ? "Moderate clinical concern. The patient should be evaluated by a healthcare professional today." : "Symptoms appear mild and stable. Follow basic home care precautions.");
-
-        const actions = [];
-        if (severity === "RED") {
-            actions.push({ label: "Call Emergency 112 / 108", instruction: "Dial 112 or 108 immediately to request an ambulance." });
-            actions.push({ label: "Keep Patient Still & Calm", instruction: "Rest in a comfortable position, loosen tight clothing, do not exert." });
-        } else {
-            actions.push({ label: "Consult Healthcare Provider", instruction: "Visit a local clinic or consult a physician for a physical examination." });
+        let resultObj = null;
+        if (state.type === "protocol" && proto) {
+            resultObj = severity === "RED" ? proto.red_result : (severity === "YELLOW" ? proto.yellow_result : proto.green_result);
         }
 
-        (state.aiData?.emergency_first_aid || []).forEach(aid => {
-            actions.push({ label: "First-Aid Guidance", instruction: aid });
-        });
+        const defaultTitle = state.type === "protocol" ? `${proto?.protocol_name || "Emergency"} Assessment` : (state.aiData?.protocol_name || `${state.complaint || "Clinical"} Assessment`);
+        const title = resultObj?.title || defaultTitle;
 
-        const verbalScript = `I need urgent medical assistance for: ${state.complaint || title}. Triage level: ${severity}. Reported symptoms: ${answers.map(a => a.answer).join("; ")}.`;
+        let message = resultObj?.message;
+        if (!message) {
+            message = severity === "RED" ?
+                "High-urgency emergency indicators detected. Immediate professional medical care and ambulance dispatch (112 / 108) is strongly advised." :
+                (severity === "YELLOW" ? "Moderate clinical concern. The patient should be evaluated by a healthcare professional today." : "Symptoms appear mild and stable. Follow basic home care precautions.");
+        }
+
+        const actions = [];
+        if (resultObj?.actions) {
+            resultObj.actions.forEach(actId => {
+                const actData = allActions[actId] || {};
+                actions.push({
+                    id: actId,
+                    label: actData.label || actId.replace(/_/g, " "),
+                    instruction: actData.instruction || "Follow standard medical precautions."
+                });
+            });
+        } else {
+            if (severity === "RED") {
+                actions.push({ label: "Call Emergency 112 / 108", instruction: "Dial 112 or 108 immediately to request an ambulance." });
+                actions.push({ label: "Keep Patient Still & Calm", instruction: "Rest in a comfortable position, loosen tight clothing, do not exert." });
+            } else if (severity === "YELLOW") {
+                actions.push({ label: "Consult Healthcare Provider", instruction: "Visit a local clinic or consult a physician today for a physical examination." });
+            } else {
+                actions.push({ label: "Home Observation", instruction: "Rest quietly, stay hydrated with clean water, and monitor for changes." });
+            }
+
+            (state.aiData?.emergency_first_aid || []).forEach(aid => {
+                actions.push({ label: "First-Aid Guidance", instruction: aid });
+            });
+        }
+
+        const symptomSummary = answers.map(a => a.optionLabel).join(", ");
+        const verbalScript = severity === "RED" ?
+            `I need an ambulance immediately for ${title.toLowerCase()}. Reported symptoms: ${symptomSummary}. Patient is in need of emergency stabilization.` :
+            `Patient presenting with ${title.toLowerCase()}. Symptoms: ${symptomSummary}. Clinically stable for evaluation.`;
 
         renderResultCard({
             title: title,
@@ -1898,7 +1706,7 @@ STRICT JSON OUTPUT ONLY:
         $("triage-question-card")?.classList.add("hidden");
         $("triage-result-card")?.classList.remove("hidden");
 
-        if ($("result-title")) $("result-title").textContent = result.title || "Assessment complete";
+        if ($("result-title")) $("result-title").textContent = result.title || "Assessment Complete";
         if ($("result-message")) $("result-message").textContent = result.message || "";
 
         const severity = String(result.severity || "").toLowerCase();
@@ -1922,7 +1730,7 @@ STRICT JSON OUTPUT ONLY:
         if ($("result-urgency")) $("result-urgency").textContent = `${result.severity || "INFO"} PRIORITY`;
 
         const script = result.verbal_script?.script || result.message || "";
-        if ($("txt-dispatch-verbal")) $("txt-dispatch-verbal").textContent = `\u201C${script}\u201D`;
+        if ($("txt-dispatch-verbal")) $("txt-dispatch-verbal").textContent = `“${script}”`;
 
         const list = $("result-actions-list");
         if (list) {
@@ -1944,9 +1752,9 @@ STRICT JSON OUTPUT ONLY:
     }
 
     function reset() {
-        state.history = [];
-        state.aiAnswers = [];
-        state.currentQuestionId = null;
+        state.answers = [];
+        state.currentIndex = 0;
+        state.questions = [];
         $("triage-result-card")?.classList.add("hidden");
         $("triage-question-card")?.classList.add("hidden");
         $("triage-start-card")?.classList.remove("hidden");
@@ -1971,4 +1779,3 @@ STRICT JSON OUTPUT ONLY:
         reset
     };
 })();
-
