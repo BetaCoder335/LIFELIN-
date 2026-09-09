@@ -823,21 +823,47 @@ STRICT JSON OUTPUT FORMAT ONLY:
     }
 
     function submitAnswer() {
-        const selected = document.querySelector('input[name="triage-opt"]:checked');
+        let selected = document.querySelector('input[name="triage-opt"]:checked');
+        if (!selected) {
+            const firstRadio = document.querySelector('input[name="triage-opt"]');
+            if (firstRadio) {
+                firstRadio.checked = true;
+                selected = firstRadio;
+            }
+        }
         if (!selected) return;
+
+        // Auto-recover type if missing
+        if (!triageState.type) {
+            triageState.type = (triageState.aiQuestions && triageState.aiQuestions.length > 0) ? "ai" : "protocol";
+        }
+        if (triageState.type === "protocol" && !triageState.protocolData) {
+            const protocols = window.LifelineTriageData?.protocols || {};
+            triageState.protocolData = protocols[triageState.protocolId] || protocols["general"] || Object.values(protocols)[0];
+            if (!triageState.currentQuestionId) {
+                triageState.currentQuestionId = triageState.protocolData?.entry_question;
+            }
+        }
 
         if (triageState.type === "protocol") {
             const proto = triageState.protocolData;
-            const q = (proto.questions || []).find(item => item.id === triageState.currentQuestionId);
-            if (!q) return;
+            if (!proto) {
+                compileAndRenderProtocolResult("GEN_YELLOW_DOCTOR");
+                return;
+            }
+            const q = (proto.questions || []).find(item => item.id === triageState.currentQuestionId) || proto.questions?.[0];
+            if (!q) {
+                compileAndRenderProtocolResult("GEN_YELLOW_DOCTOR");
+                return;
+            }
 
             const opt = (q.options || []).find(o => o.id === selected.value) || q.options[0];
-            const nextNode = opt.next;
+            const nextNode = opt ? opt.next : null;
 
             triageState.history.push({
                 questionId: q.id,
-                optionId: opt.id,
-                optionLabel: opt.label
+                optionId: opt ? opt.id : "opt",
+                optionLabel: opt ? opt.label : selected.value
             });
 
             const isOutcome = !nextNode || nextNode.isupper() || nextNode.startsWith("SWITCH_") || !proto.questions.some(item => item.id === nextNode);
@@ -849,8 +875,12 @@ STRICT JSON OUTPUT FORMAT ONLY:
                 renderProtocolQuestion();
             }
         } else if (triageState.type === "ai") {
-            const severity = selected.dataset.severity || "YELLOW";
+            const severity = selected.dataset?.severity || "YELLOW";
             const q = triageState.aiQuestions[triageState.aiCurrentIndex];
+            if (!q) {
+                compileAndRenderAIResult();
+                return;
+            }
             const opt = (q.options || []).find(o => o.id === selected.value);
 
             triageState.aiAnswers.push({
