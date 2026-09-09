@@ -267,19 +267,24 @@
 
             <!-- TRIAGE -->
             <section id="view-triage" class="view hidden">
-                <div class="page-intro"><span class="eyebrow">EMERGENCY TRIAGE</span><h2>Let's assess this.</h2><p>Describe what is happening and LIFELINE will guide you through a short structured check.</p></div>
+                <div class="page-intro"><span class="eyebrow">EMERGENCY TRIAGE</span><h2>Clinical Triage Assessment</h2><p>Select an emergency protocol or describe the symptoms. LIFELINE will guide you through clinical questions.</p></div>
 
                 <div id="triage-start-card" class="triage-card">
-                    <div class="triage-alert"><span>!</span><div><strong>If someone is in immediate danger</strong><p>Call 112 or 108 first.</p></div></div>
-                    <div class="field"><label>What is happening?</label><textarea id="input-complaint" rows="4" placeholder="e.g. sudden chest pressure, fainting, heavy bleeding..."></textarea></div>
-                    <button id="btn-start-triage" class="btn btn-primary btn-full" type="button">Start assessment <span>→</span></button>
+                    <div class="triage-alert"><span>!</span><div><strong>Immediate Life Threat?</strong><p>Call 112 or 108 immediately if the patient is unresponsive, not breathing, or in extreme agony.</p></div></div>
+                    <div class="field"><label>Describe what is happening</label><textarea id="input-complaint" rows="3" placeholder="e.g. snake bite on foot, sudden chest heaviness, severe breathing difficulty, child has high fever..."></textarea></div>
+                    <button id="btn-start-triage" class="btn btn-primary btn-full" type="button">Start Intelligent Triage <span>→</span></button>
+                    
+                    <div style="margin-top: 18px; margin-bottom: 8px; font-size: 0.85rem; font-weight: 600; color: #555; text-transform: uppercase; letter-spacing: 0.5px;">Or Select a Standard Protocol:</div>
                     <div class="protocol-grid">
-                        <button data-proto="chest_pain" class="protocol"><span>♥</span>Chest discomfort</button>
-                        <button data-proto="unconsciousness_adult" class="protocol"><span>⚡</span>Fainting / seizure</button>
-                        <button data-proto="bleeding" class="protocol"><span>+</span>Severe bleeding</button>
-                        <button data-proto="pregnancy" class="protocol"><span>○</span>Pregnancy</button>
-                        <button data-proto="menstrual" class="protocol"><span>○</span>Heavy period</button>
-                        <button data-proto="general" class="protocol"><span>+</span>Something else</button>
+                        <button data-proto="chest_pain" class="protocol"><span>♥</span>Chest Discomfort</button>
+                        <button data-proto="stroke" class="protocol"><span>🧠</span>Stroke / Weakness</button>
+                        <button data-proto="unconsciousness_adult" class="protocol"><span>⚡</span>Fainting / Seizure</button>
+                        <button data-proto="bleeding" class="protocol"><span>🩹</span>Severe Bleeding</button>
+                        <button data-proto="breathing_dehydration" class="protocol"><span>🫁</span>Breathing / Dehydration</button>
+                        <button data-proto="headache" class="protocol"><span>🤕</span>Severe Headache</button>
+                        <button data-proto="pregnancy" class="protocol"><span>🤰</span>Pregnancy Emergency</button>
+                        <button data-proto="menstrual" class="protocol"><span>🩸</span>Heavy Period</button>
+                        <button data-proto="general" class="protocol"><span>✚</span>General Assessment</button>
                     </div>
                 </div>
 
@@ -287,7 +292,10 @@
                     <div class="triage-progress"><span id="badge-proto-name">Triage</span><span id="question-progress">Assessment</span></div>
                     <h3 id="triage-question-text"></h3>
                     <div id="triage-options-list" class="triage-options"></div>
-                    <button id="btn-next-question" class="btn btn-primary btn-full" type="button">Continue <span>→</span></button>
+                    <div class="form-actions" style="margin-top: 20px;">
+                        <button id="btn-back-question" class="btn btn-light" type="button">← Back</button>
+                        <button id="btn-next-question" class="btn btn-primary" type="button" style="flex: 1;">Continue <span>→</span></button>
+                    </div>
                 </div>
 
                 <div id="triage-result-card" class="triage-card hidden">
@@ -296,11 +304,12 @@
                         <span id="result-urgency"></span>
                     </div>
                     <p id="result-message" class="result-message"></p>
-                    <div class="dispatcher-box"><small>READ THIS TO THE DISPATCHER</small><p id="txt-dispatch-verbal"></p></div>
+                    <div class="dispatcher-box"><small>READ THIS TO THE 112/108 DISPATCHER</small><p id="txt-dispatch-verbal"></p></div>
                     <div id="result-actions-list" class="result-actions"></div>
-                    <div class="form-actions">
-                        <a id="btn-send-sms-sos" class="btn btn-danger" href="#">Send SMS SOS</a>
-                        <button id="btn-reset-triage" class="btn btn-light" type="button">New assessment</button>
+                    <div class="form-actions" style="margin-top: 20px; display: flex; flex-wrap: wrap; gap: 10px;">
+                        <a id="btn-call-112-triage" class="btn btn-danger" href="tel:112" style="flex: 1; min-width: 140px; text-align: center;">🚨 Call 112 / 108</a>
+                        <a id="btn-send-sms-sos" class="btn btn-light" href="#" style="flex: 1; min-width: 140px; text-align: center;">💬 Send SMS SOS</a>
+                        <button id="btn-reset-triage" class="btn btn-light" type="button" style="width: 100%;">🔄 New Assessment</button>
                     </div>
                 </div>
             </section>
@@ -451,6 +460,7 @@
     </div>
 
     <script src="config.js"></script>
+    <script src="triage-protocols.js"></script>
     <script src="firebase-service.js"></script>
     <script src="app.js"></script>
 </body>
