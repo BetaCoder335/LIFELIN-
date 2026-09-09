@@ -95,20 +95,22 @@
         const code = error?.code || "";
         const map = {
             "auth/invalid-email": "Enter a valid email address.",
-            "auth/user-not-found": "No account exists with this email.",
-            "auth/wrong-password": "Incorrect email or password.",
-            "auth/invalid-credential": "Incorrect email or password.",
-            "auth/email-already-in-use": "An account already exists with this email.",
+            "auth/user-not-found": "No account exists with this email. Click 'Create account' above.",
+            "auth/wrong-password": "Incorrect password. Try again or reset password.",
+            "auth/invalid-credential": "Incorrect email or password. If new, click 'Create account' above.",
+            "auth/email-already-in-use": "An account already exists with this email. Click 'Sign in' above.",
             "auth/weak-password": "Use a stronger password (6+ characters).",
             "auth/popup-closed-by-user": "Google sign-in was cancelled.",
-            "auth/popup-blocked": "Allow popups for this site and try again.",
+            "auth/popup-blocked": "Popups blocked. Allow popups for this site or use email login.",
+            "auth/unauthorized-domain": "Domain not authorized in Firebase Console. You can sign in with Email or click 'Continue as Guest' below.",
             "auth/too-many-requests": "Too many attempts. Please wait a moment.",
-            "auth/invalid-phone-number": "Enter a valid international phone number.",
-            "auth/invalid-verification-code": "The OTP is incorrect.",
-            "auth/code-expired": "The OTP expired. Send a new one.",
-            "auth/captcha-check-failed": "reCAPTCHA failed. Try again."
+            "auth/network-request-failed": "Network connection error. You can click 'Continue as Guest' below for offline access.",
+            "auth/invalid-phone-number": "Enter a valid international phone number (e.g. +91 9876543210).",
+            "auth/invalid-verification-code": "The OTP entered is incorrect.",
+            "auth/code-expired": "The OTP expired. Please send a new one.",
+            "auth/captcha-check-failed": "reCAPTCHA check failed. Please refresh and try again."
         };
-        return map[code] || error?.message || "Something went wrong. Please try again.";
+        return map[code] || error?.message || "Something went wrong. Please try again or continue as Guest.";
     }
 
     // =========================================================
@@ -120,10 +122,13 @@
 
         try {
             toast("👋 Signing out...");
+            localStorage.removeItem("lifeline_guest_user");
             await window.LifelineFirebase.logout();
         } catch (error) {
             console.error("[LIFELINE] Logout error:", error);
-            toast("❌ Could not sign out. Please try again.");
+            state.user = null;
+            showAuthScreen();
+            toast("Signed out.");
         }
     }
 
@@ -140,6 +145,26 @@
                 if ($("auth-submit")) $("auth-submit").innerHTML = signup ? "Create account <span>\u2192</span>" : "Sign in <span>\u2192</span>";
                 setAuthStatus("");
             });
+        });
+
+        $("btn-guest-login")?.addEventListener("click", () => {
+            const guestUser = {
+                uid: "guest_" + Math.random().toString(36).slice(2, 8),
+                isAnonymous: true,
+                displayName: "Guest User",
+                email: "guest@lifeline.local"
+            };
+            state.user = guestUser;
+            localStorage.setItem("lifeline_guest_user", JSON.stringify(guestUser));
+            loadProfile();
+            renderOverview();
+            populateProfileForm();
+            renderRecords();
+            renderEmergencyCard();
+            showApp();
+            updateIdentity();
+            hideLoading();
+            toast("⚡ Entered Guest Mode (Full offline access)");
         });
 
         $("form-auth")?.addEventListener("submit", async event => {
@@ -165,6 +190,7 @@
 
         $("google-login")?.addEventListener("click", async () => {
             try {
+                setAuthStatus("Opening Google sign-in…");
                 await window.LifelineFirebase.googleLogin();
             } catch (error) {
                 setAuthStatus(friendlyAuthError(error), true);
@@ -1422,10 +1448,10 @@ CRITICAL RULES:
 
         let resolved = false;
         window.LifelineFirebase.observe(async user => {
-            state.user = user;
             console.log("[LIFELINE] auth state:", user ? "signed in" : "signed out");
 
             if (user) {
+                state.user = user;
                 await loadProfile();
                 renderOverview();
                 populateProfileForm();
@@ -1433,7 +1459,22 @@ CRITICAL RULES:
                 renderEmergencyCard();
                 showApp();
             } else {
-                showAuthScreen();
+                const savedGuest = localStorage.getItem("lifeline_guest_user");
+                if (savedGuest) {
+                    try {
+                        state.user = JSON.parse(savedGuest);
+                        await loadProfile();
+                        renderOverview();
+                        populateProfileForm();
+                        renderRecords();
+                        renderEmergencyCard();
+                        showApp();
+                    } catch {
+                        showAuthScreen();
+                    }
+                } else {
+                    showAuthScreen();
+                }
             }
             updateIdentity();
 
