@@ -1458,3 +1458,484 @@ window.LifelineTriageData = {
     }
   }
 };
+
+// =========================================================
+// STANDALONE RESILIENT TRIAGE ENGINE
+// =========================================================
+window.LifelineTriage = (() => {
+    const $ = id => document.getElementById(id);
+    const escapeHtml = str => String(str ?? "").replace(/[&<>'"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[c]);
+    const escapeAttr = str => escapeHtml(str).replace(/`/g, '&#96;');
+
+    const state = {
+        type: null, // 'protocol' | 'ai'
+        protocolId: null,
+        protocolData: null,
+        currentQuestionId: null,
+        history: [],
+        aiQuestions: [],
+        aiCurrentIndex: 0,
+        aiAnswers: [],
+        aiData: null,
+        complaint: ""
+    };
+
+    function matchKeywordProtocol(complaint) {
+        if (!complaint || !window.LifelineTriageData?.protocols) return null;
+        const text = complaint.toLowerCase();
+        for (const [pid, proto] of Object.entries(window.LifelineTriageData.protocols)) {
+            const keywords = proto.trigger_keywords || [];
+            for (const kw of keywords) {
+                if (text.includes(kw.toLowerCase())) return pid;
+            }
+        }
+        return null;
+    }
+
+    async function generateAITriageQuestions(complaint) {
+        const groqKey = window.LifelineConfig?.GROQ_API_KEY || (window.LifelineConfig?.GROQ_KEY_ENC ? atob(window.LifelineConfig.GROQ_KEY_ENC) : "");
+        if (!groqKey) throw new Error("Groq API key not configured");
+
+        const prompt = `You are LIFELINE AI emergency triage assistant for India.
+Patient complaint: "${complaint}".
+Generate 3 focused triage questions with single-choice options to determine emergency severity (RED: call 112/108, YELLOW: visit clinic today, GREEN: home care).
+
+STRICT JSON OUTPUT ONLY:
+{
+  "protocol_name": "Clinical Title",
+  "questions": [
+    {
+      "id": "q1",
+      "text": "Question evaluating immediate breathing or danger signs?",
+      "options": [
+        {"id": "o1", "label": "Severe danger sign (e.g. trouble breathing, fainting, severe pain)", "severity": "RED"},
+        {"id": "o2", "label": "Moderate symptom (e.g. localized discomfort, mild nausea)", "severity": "YELLOW"},
+        {"id": "o3", "label": "Mild or no danger signs", "severity": "GREEN"}
+      ]
+    },
+    {
+      "id": "q2",
+      "text": "Question evaluating symptom duration or progression?",
+      "options": [
+        {"id": "o4", "label": "Rapidly worsening or spreading", "severity": "RED"},
+        {"id": "o5", "label": "Stable or mild", "severity": "YELLOW"},
+        {"id": "o6", "label": "Already improving", "severity": "GREEN"}
+      ]
+    },
+    {
+      "id": "q3",
+      "text": "Question evaluating secondary risk factors?",
+      "options": [
+        {"id": "o7", "label": "High risk factor present", "severity": "RED"},
+        {"id": "o8", "label": "Moderate risk", "severity": "YELLOW"},
+        {"id": "o9", "label": "Low risk / otherwise healthy", "severity": "GREEN"}
+      ]
+    }
+  ],
+  "emergency_first_aid": [
+    "Immediate action step 1",
+    "Immediate action step 2",
+    "Safety precaution"
+  ]
+}`;
+
+        const models = ["qwen/qwen3.8-27b", "qwen/qwen3.6-27b", "openai/gpt-oss-120b"];
+        for (const model of models) {
+            try {
+                const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${groqKey}`
+                    },
+                    body: JSON.stringify({
+                        model: model,
+                        messages: [
+                            { role: "system", content: "You are a clinical triage AI. Output strict valid JSON only, no markdown formatting." },
+                            { role: "user", content: prompt }
+                        ],
+                        temperature: 0.1,
+                        max_tokens: 1024
+                    })
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    const text = data.choices?.[0]?.message?.content || "";
+                    const clean = text.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "").trim();
+                    const json = JSON.parse(clean);
+                    if (json.questions && json.questions.length) return json;
+                }
+            } catch (e) {
+                console.warn("[LifelineTriage] Groq model fallback:", e);
+            }
+        }
+        throw new Error("Unable to generate AI questions");
+    }
+
+    async function start(complaint = "", protocol = null) {
+        complaint = (complaint || "").trim();
+        $("triage-start-card")?.classList.add("hidden");
+        $("triage-result-card")?.classList.add("hidden");
+        $("triage-question-card")?.classList.remove("hidden");
+
+        state.history = [];
+        state.aiAnswers = [];
+        state.complaint = complaint;
+
+        let targetProto = protocol;
+        if (!targetProto && complaint) {
+            targetProto = matchKeywordProtocol(complaint);
+        }
+
+        const protocols = window.LifelineTriageData?.protocols || {};
+
+        if (targetProto && protocols[targetProto]) {
+            state.type = "protocol";
+            state.protocolId = targetProto;
+            state.protocolData = protocols[targetProto];
+            state.currentQuestionId = protocols[targetProto].entry_question;
+            renderProtocolQuestion();
+            return;
+        }
+
+        if (complaint && complaint.length > 2) {
+            if ($("triage-question-text")) $("triage-question-text").textContent = "Formulating clinical assessment check...";
+            if ($("badge-proto-name")) $("badge-proto-name").textContent = "AI Clinical Triage";
+            if ($("question-progress")) $("question-progress").textContent = "Preparing...";
+            if ($("triage-options-list")) $("triage-options-list").innerHTML = `<div style="padding:25px;text-align:center;color:#666;"><div class="loading-logo" style="margin:0 auto 10px;width:32px;height:32px;line-height:32px;font-size:18px;">+</div>Formulating tailored clinical triage for: <strong>"${escapeHtml(complaint)}"</strong>...</div>`;
+            if ($("btn-next-question")) $("btn-next-question").disabled = true;
+
+            try {
+                const aiData = await generateAITriageQuestions(complaint);
+                state.type = "ai";
+                state.aiData = aiData;
+                state.aiQuestions = aiData.questions || [];
+                state.aiCurrentIndex = 0;
+                renderAIQuestion();
+                return;
+            } catch (err) {
+                console.warn("[LifelineTriage] Dynamic AI generation failed, falling back to General protocol:", err);
+            }
+        }
+
+        const generalProto = protocols["general"] || Object.values(protocols)[0];
+        state.type = "protocol";
+        state.protocolId = generalProto?.protocol_id || "general";
+        state.protocolData = generalProto;
+        state.currentQuestionId = generalProto?.entry_question || "gen_001";
+        renderProtocolQuestion();
+    }
+
+    function renderProtocolQuestion() {
+        const proto = state.protocolData;
+        if (!proto) return;
+
+        const q = (proto.questions || []).find(item => item.id === state.currentQuestionId) || proto.questions?.[0];
+        if (!q) {
+            compileAndRenderProtocolResult("GEN_YELLOW_DOCTOR");
+            return;
+        }
+
+        if ($("badge-proto-name")) $("badge-proto-name").textContent = proto.protocol_name || "Emergency Triage";
+        const totalQ = proto.questions?.length || 4;
+        const currentIdx = state.history.length + 1;
+        if ($("question-progress")) $("question-progress").textContent = `Question ${currentIdx} of ${Math.max(currentIdx, totalQ)}`;
+        if ($("triage-question-text")) $("triage-question-text").textContent = q.text || "";
+
+        const list = $("triage-options-list");
+        if (!list) return;
+        list.innerHTML = "";
+
+        (q.options || []).forEach((opt, i) => {
+            const label = document.createElement("label");
+            label.className = "triage-option" + (i === 0 ? " selected" : "");
+            label.innerHTML = `<input type="radio" name="triage-opt" value="${escapeAttr(opt.id)}" ${i === 0 ? "checked" : ""}><span>${escapeHtml(opt.label)}</span>`;
+            
+            label.addEventListener("click", () => {
+                list.querySelectorAll(".triage-option").forEach(o => o.classList.remove("selected"));
+                label.classList.add("selected");
+                const radio = label.querySelector("input");
+                if (radio) radio.checked = true;
+            });
+
+            list.appendChild(label);
+        });
+
+        if ($("btn-next-question")) $("btn-next-question").disabled = false;
+        if ($("btn-back-question")) $("btn-back-question").disabled = state.history.length === 0;
+    }
+
+    function renderAIQuestion() {
+        const questions = state.aiQuestions;
+        const idx = state.aiCurrentIndex;
+        if (!questions || idx >= questions.length) {
+            compileAndRenderAIResult();
+            return;
+        }
+
+        const q = questions[idx];
+        if ($("badge-proto-name")) $("badge-proto-name").textContent = state.aiData?.protocol_name || "AI Clinical Assessment";
+        if ($("question-progress")) $("question-progress").textContent = `Question ${idx + 1} of ${questions.length}`;
+        if ($("triage-question-text")) $("triage-question-text").textContent = q.text;
+
+        const list = $("triage-options-list");
+        if (!list) return;
+        list.innerHTML = "";
+
+        (q.options || []).forEach((opt, i) => {
+            const label = document.createElement("label");
+            label.className = "triage-option" + (i === 0 ? " selected" : "");
+            label.innerHTML = `<input type="radio" name="triage-opt" value="${escapeAttr(opt.id)}" data-severity="${escapeAttr(opt.severity || 'YELLOW')}" ${i === 0 ? "checked" : ""}><span>${escapeHtml(opt.label)}</span>`;
+            
+            label.addEventListener("click", () => {
+                list.querySelectorAll(".triage-option").forEach(o => o.classList.remove("selected"));
+                label.classList.add("selected");
+                const radio = label.querySelector("input");
+                if (radio) radio.checked = true;
+            });
+
+            list.appendChild(label);
+        });
+
+        if ($("btn-next-question")) $("btn-next-question").disabled = false;
+        if ($("btn-back-question")) $("btn-back-question").disabled = idx === 0;
+    }
+
+    function back() {
+        if (state.type === "protocol") {
+            if (state.history.length > 0) {
+                const prev = state.history.pop();
+                state.currentQuestionId = prev.questionId;
+                renderProtocolQuestion();
+            } else {
+                reset();
+            }
+        } else if (state.type === "ai") {
+            if (state.aiCurrentIndex > 0) {
+                state.aiCurrentIndex--;
+                state.aiAnswers.pop();
+                renderAIQuestion();
+            } else {
+                reset();
+            }
+        } else {
+            reset();
+        }
+    }
+
+    function submit() {
+        let selected = document.querySelector('input[name="triage-opt"]:checked');
+        if (!selected) {
+            const first = document.querySelector('input[name="triage-opt"]');
+            if (first) { first.checked = true; selected = first; }
+        }
+        if (!selected) return;
+
+        if (!state.type) {
+            state.type = (state.aiQuestions && state.aiQuestions.length > 0) ? "ai" : "protocol";
+        }
+        if (state.type === "protocol" && !state.protocolData) {
+            const protocols = window.LifelineTriageData?.protocols || {};
+            state.protocolData = protocols[state.protocolId] || protocols["general"] || Object.values(protocols)[0];
+            state.currentQuestionId = state.currentQuestionId || state.protocolData?.entry_question;
+        }
+
+        if (state.type === "protocol") {
+            const proto = state.protocolData;
+            const q = (proto.questions || []).find(item => item.id === state.currentQuestionId) || proto.questions?.[0];
+            if (!q) { compileAndRenderProtocolResult("GEN_YELLOW_DOCTOR"); return; }
+
+            const opt = (q.options || []).find(o => o.id === selected.value) || q.options[0];
+            const nextNode = opt ? opt.next : null;
+
+            state.history.push({
+                questionId: q.id,
+                optionId: opt ? opt.id : "opt",
+                optionLabel: opt ? opt.label : selected.value
+            });
+
+            if (nextNode === "SWITCH_TO_CHEST") {
+                start("", "chest_pain");
+                return;
+            }
+
+            const isOutcome = !nextNode || nextNode.isupper() || nextNode.startsWith("SWITCH_") || !proto.questions.some(item => item.id === nextNode);
+
+            if (isOutcome) {
+                compileAndRenderProtocolResult(nextNode || "GEN_YELLOW_DOCTOR");
+            } else {
+                state.currentQuestionId = nextNode;
+                renderProtocolQuestion();
+            }
+        } else if (state.type === "ai") {
+            const severity = selected.dataset?.severity || "YELLOW";
+            const q = state.aiQuestions[state.aiCurrentIndex];
+            if (!q) { compileAndRenderAIResult(); return; }
+            const opt = (q.options || []).find(o => o.id === selected.value);
+
+            state.aiAnswers.push({
+                question: q.text,
+                answer: opt ? opt.label : selected.value,
+                severity: severity
+            });
+
+            state.aiCurrentIndex++;
+            if (state.aiCurrentIndex >= state.aiQuestions.length) {
+                compileAndRenderAIResult();
+            } else {
+                renderAIQuestion();
+            }
+        }
+    }
+
+    function compileAndRenderProtocolResult(resultId) {
+        const proto = state.protocolData;
+        const allActions = window.LifelineTriageData?.actions || {};
+
+        let resObj = (proto?.results || []).find(r => r.id === resultId);
+        if (!resObj) {
+            const sev = resultId.includes("RED") ? "RED" : (resultId.includes("YELLOW") ? "YELLOW" : "GREEN");
+            resObj = {
+                id: resultId,
+                severity: sev,
+                title: proto?.protocol_name ? `${proto.protocol_name} Assessment` : "Clinical Assessment Result",
+                message: sev === "RED" ? "Immediate medical emergency signs detected. Call 112 or 108 without delay." : "Clinical evaluation is recommended based on reported symptoms.",
+                actions: sev === "RED" ? ["CALL_112", "REST_MONITOR"] : ["VISIT_HEALTHCARE_PROVIDER_TODAY"]
+            };
+        }
+
+        const actions = (resObj.actions || []).map(actId => {
+            const actData = allActions[actId] || {};
+            return {
+                id: actId,
+                label: actData.label || actId.replace(/_/g, " "),
+                instruction: actData.instruction || "Take immediate precautions and monitor vital signs."
+            };
+        });
+
+        const verbalScript = resObj.severity === "RED" ?
+            `I need an ambulance immediately. The patient is experiencing ${resObj.title.toLowerCase()}. Symptoms: ${state.history.map(h => h.optionLabel).join(", ")}.` :
+            `Patient presenting with ${resObj.title.toLowerCase()}. Clinically stable for evaluation.`;
+
+        renderResultCard({
+            title: resObj.title,
+            severity: resObj.severity || "YELLOW",
+            message: resObj.message,
+            actions: actions,
+            verbal_script: { script: verbalScript }
+        });
+    }
+
+    function compileAndRenderAIResult() {
+        const answers = state.aiAnswers || [];
+        const hasRed = answers.some(a => a.severity === "RED");
+        const hasYellow = answers.some(a => a.severity === "YELLOW");
+
+        const severity = hasRed ? "RED" : (hasYellow ? "YELLOW" : "GREEN");
+        const title = state.aiData?.protocol_name || `${state.complaint || "Medical"} Assessment`;
+
+        let message = severity === "RED" ?
+            "High-urgency emergency indicators detected. Immediate professional medical care and ambulance dispatch (112 / 108) is strongly advised." :
+            (severity === "YELLOW" ? "Moderate clinical concern. The patient should be evaluated by a healthcare professional today." : "Symptoms appear mild and stable. Follow basic home care precautions.");
+
+        const actions = [];
+        if (severity === "RED") {
+            actions.push({ label: "Call Emergency 112 / 108", instruction: "Dial 112 or 108 immediately to request an ambulance." });
+            actions.push({ label: "Keep Patient Still & Calm", instruction: "Rest in a comfortable position, loosen tight clothing, do not exert." });
+        } else {
+            actions.push({ label: "Consult Healthcare Provider", instruction: "Visit a local clinic or consult a physician for a physical examination." });
+        }
+
+        (state.aiData?.emergency_first_aid || []).forEach(aid => {
+            actions.push({ label: "First-Aid Guidance", instruction: aid });
+        });
+
+        const verbalScript = `I need urgent medical assistance for: ${state.complaint || title}. Triage level: ${severity}. Reported symptoms: ${answers.map(a => a.answer).join("; ")}.`;
+
+        renderResultCard({
+            title: title,
+            severity: severity,
+            message: message,
+            actions: actions,
+            verbal_script: { script: verbalScript }
+        });
+    }
+
+    function renderResultCard(result) {
+        $("triage-question-card")?.classList.add("hidden");
+        $("triage-result-card")?.classList.remove("hidden");
+
+        if ($("result-title")) $("result-title").textContent = result.title || "Assessment complete";
+        if ($("result-message")) $("result-message").textContent = result.message || "";
+
+        const severity = String(result.severity || "").toLowerCase();
+        const banner = $("result-status-banner");
+        if (banner) {
+            if (severity === "red") {
+                banner.style.background = "#fff0f1";
+                banner.style.color = "#c53d3d";
+                banner.style.border = "1px solid #f8d7da";
+            } else if (severity === "yellow" || severity === "orange") {
+                banner.style.background = "#fff7e8";
+                banner.style.color = "#cf6a23";
+                banner.style.border = "1px solid #ffeeba";
+            } else {
+                banner.style.background = "#e8f8ef";
+                banner.style.color = "#0a8f55";
+                banner.style.border = "1px solid #d4edda";
+            }
+        }
+
+        if ($("result-urgency")) $("result-urgency").textContent = `${result.severity || "INFO"} PRIORITY`;
+
+        const script = result.verbal_script?.script || result.message || "";
+        if ($("txt-dispatch-verbal")) $("txt-dispatch-verbal").textContent = `\u201C${script}\u201D`;
+
+        const list = $("result-actions-list");
+        if (list) {
+            list.innerHTML = "";
+            (result.actions || []).forEach(action => {
+                const el = document.createElement("div");
+                el.className = "result-action";
+                const label = action.label ? `<strong>${escapeHtml(action.label)}</strong>: ` : "";
+                const instruction = escapeHtml(action.instruction || action.text || String(action));
+                el.innerHTML = `${label}${instruction}`;
+                list.appendChild(el);
+            });
+        }
+
+        const message = `LIFELINE SOS: I need urgent medical help! Condition: ${result?.title || 'Emergency'}. Please call 112/108.`;
+        if ($("btn-send-sms-sos")) {
+            $("btn-send-sms-sos").href = `sms:112?body=${encodeURIComponent(message)}`;
+        }
+    }
+
+    function reset() {
+        state.history = [];
+        state.aiAnswers = [];
+        state.currentQuestionId = null;
+        $("triage-result-card")?.classList.add("hidden");
+        $("triage-question-card")?.classList.add("hidden");
+        $("triage-start-card")?.classList.remove("hidden");
+        if ($("input-complaint")) $("input-complaint").value = "";
+    }
+
+    // Auto-bind when DOM is ready
+    document.addEventListener("DOMContentLoaded", () => {
+        document.querySelectorAll(".protocol").forEach(button => {
+            button.addEventListener("click", () => start("", button.dataset.proto));
+        });
+        $("btn-start-triage")?.addEventListener("click", () => start($("input-complaint")?.value.trim()));
+        $("btn-next-question")?.addEventListener("click", submit);
+        $("btn-back-question")?.addEventListener("click", back);
+        $("btn-reset-triage")?.addEventListener("click", reset);
+    });
+
+    return {
+        start,
+        submit,
+        back,
+        reset
+    };
+})();
+
