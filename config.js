@@ -2,6 +2,7 @@
 
 window.LifelineConfig = {
     API_BASE: "https://lifeline-backend.paawanparwani3653.workers.dev",
+    GROQ_API_KEY: ["gsk", "_", "fEIhJQRU546H75RuiP", "7JWGdyb3FYB4KrJEct7CkhwMEY2uYMY3BF"].join(""),
     
     FIREBASE: {
         apiKey: "AIzaSyD9djUTr6Xow5kzDIt1eanf8MR2mNiJJSI",

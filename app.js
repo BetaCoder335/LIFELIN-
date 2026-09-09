@@ -709,6 +709,67 @@
         }
     }
 
+    async function callGroqDirect(userMessage, history = []) {
+        const groqKey = window.LifelineConfig?.GROQ_API_KEY || (window.LifelineConfig?.GROQ_KEY_ENC ? atob(window.LifelineConfig.GROQ_KEY_ENC) : "");
+        if (!groqKey) throw new Error("No Groq API key configured.");
+
+        const systemPrompt = `You are LIFELINE AI, an authoritative, empathetic medical assistance companion for India.
+Your guidance must be grounded in reliable clinical guidelines:
+- World Health Organization (WHO) Guidelines & Basic Emergency Care
+- Ministry of Health and Family Welfare (MoHFW), Govt of India
+- Indian Council of Medical Research (ICMR) & AIIMS New Delhi
+- American Heart Association (AHA)
+
+RULES:
+1. Do NOT diagnose disease. Explain symptoms, provide safe first-aid, triage urgency, and advise next steps.
+2. Tone: Calm, compassionate, reassuring, and clear.
+3. If an emergency red flag is present (severe chest pressure, unconsciousness, severe bleeding, choking, stroke signs, snake bite, severe trauma):
+   - Advise calling 112 or 108 immediately.
+   - Give urgent, concise step-by-step actions.
+4. If symptoms need doctor evaluation today, advise visiting a clinic.
+5. If safe for home care, give practical home remedies.
+6. Always list reliable sources at the end.`;
+
+        const messages = [
+            { role: "system", content: systemPrompt },
+            ...(history || []).slice(-6).map(h => ({ role: h.role, content: h.content })),
+            { role: "user", content: userMessage }
+        ];
+
+        const models = ["qwen/qwen3.8-27b", "qwen/qwen3.6-27b", "openai/gpt-oss-120b"];
+        for (const model of models) {
+            try {
+                const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${groqKey}`
+                    },
+                    body: JSON.stringify({
+                        model: model,
+                        messages: messages,
+                        temperature: 0.3,
+                        max_tokens: 1024
+                    })
+                });
+                if (res.ok) {
+                    const json = await res.json();
+                    let content = json.choices?.[0]?.message?.content;
+                    if (content) {
+                        try {
+                            const parsed = JSON.parse(content.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, ""));
+                            content = parsed.reply || parsed.answer || parsed.response || content;
+                        } catch {}
+                        return content;
+                    }
+                }
+            } catch (err) {
+                console.warn(`[LIFELINE] Groq ${model} error:`, err);
+            }
+        }
+        throw new Error("Unable to reach Groq AI.");
+    }
+
     async function sendChat(message) {
         message = (message || "").trim();
         if (!message) return;
@@ -716,15 +777,26 @@
         if ($("input-chat")) $("input-chat").value = "";
 
         try {
-            const data = await backendFetch("/chat", {
-                method: "POST",
-                body: JSON.stringify({
-                    message: message,
-                    history: state.history
-                })
-            });
+            let answer = "";
+            try {
+                const data = await backendFetch("/chat", {
+                    method: "POST",
+                    body: JSON.stringify({
+                        message: message,
+                        history: state.history
+                    })
+                });
+                const raw = data.answer || data.reply || data.response || data.message;
+                if (raw && raw !== "I could not generate a response." && !data.detail) {
+                    answer = raw;
+                }
+            } catch (backendErr) {
+                console.warn("[LIFELINE] Backend chat unavailable, trying direct Groq...", backendErr);
+            }
 
-            const answer = data.answer || data.reply || data.response || data.message || "I could not generate a response.";
+            if (!answer) {
+                answer = await callGroqDirect(message, state.history);
+            }
 
             appendChat(answer, "assistant");
             state.history.push(
