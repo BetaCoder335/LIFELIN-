@@ -1149,11 +1149,6 @@ CRITICAL RULES:
         navigator.geolocation.getCurrentPosition(
             position => {
                 state.lastGps = `${position.coords.latitude.toFixed(6)}, ${position.coords.longitude.toFixed(6)}`;
-            },
-            () => {},
-            { enableHighAccuracy: true, timeout: 5000 }
-        );
-    }
                 console.log("[LIFELINE] GPS acquired:", state.lastGps);
             },
             () => {},
