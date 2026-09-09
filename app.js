@@ -636,7 +636,7 @@
                 sosDiv.className = "chat-sos-actions";
                 sosDiv.innerHTML = `
                     <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;">
-                        <button onclick="window.dispatchEvent(new CustomEvent('trigger-sos'))" class="btn btn-danger" style="font-size:12px;padding:8px 16px;border:none;border-radius:8px;background:linear-gradient(135deg,#d92d3d,#b71c1c);color:white;cursor:pointer;">🚨 SOS Emergency</button>
+                        <button onclick="if(window.LifelineTriggerSOS) { window.LifelineTriggerSOS(); } else { window.dispatchEvent(new CustomEvent('trigger-sos')); }" class="btn btn-danger" style="font-size:12px;padding:8px 16px;border:none;border-radius:8px;background:linear-gradient(135deg,#d92d3d,#b71c1c);color:white;cursor:pointer;">🚨 SOS Emergency</button>
                         <a href="tel:112" class="btn btn-danger" style="font-size:12px;padding:8px 16px;text-decoration:none;border:none;border-radius:8px;background:linear-gradient(135deg,#d92d3d,#b71c1c);color:white;display:inline-flex;align-items:center;gap:4px;">📞 Call 112</a>
                         <a href="tel:108" class="btn btn-danger" style="font-size:12px;padding:8px 16px;text-decoration:none;border:none;border-radius:8px;background:linear-gradient(135deg,#d92d3d,#b71c1c);color:white;display:inline-flex;align-items:center;gap:4px;">📞 Call 108</a>
                     </div>
@@ -975,77 +975,41 @@ CRITICAL RULES:
     }
 
     function triggerSOS() {
-        const contactName = state.profile.contactName || "Emergency Contact";
-        const contactPhone = state.profile.contactPhone || "112";
+        const contactName = state.profile?.contactName || "Emergency Contact";
+        const contactPhone = state.profile?.contactPhone || "112";
         const name = profileName();
-        let location = state.lastGps;
+        let location = state.lastGps || "Detecting GPS location...";
 
-        toast("🚨 Sending SOS with your location...");
+        toast("🚨 Opening Emergency SOS Dispatch...");
 
-        navigator.geolocation.getCurrentPosition(
-            async (position) => {
-                const lat = position.coords.latitude.toFixed(6);
-                const lng = position.coords.longitude.toFixed(6);
-                const loc = `${lat}, ${lng}`;
-                state.lastGps = loc;
+        // 1. Instantly display modal with preliminary info so user has immediate 1-tap call access
+        const initialMsg = `🚨 EMERGENCY SOS - LIFELINE 🚨\nName: ${name}\nEmergency: Immediate Medical Assistance Needed\nTime: ${new Date().toLocaleTimeString()}\nCall 112 / 108 immediately.`;
+        showSOSModal(contactName, contactPhone, location, initialMsg, null);
 
-                const mapsLink = `https://www.google.com/maps?q=${lat},${lng}`;
+        // 2. Fetch high-precision GPS in background
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const lat = position.coords.latitude.toFixed(6);
+                    const lng = position.coords.longitude.toFixed(6);
+                    const loc = `${lat}, ${lng}`;
+                    state.lastGps = loc;
+                    const mapsLink = `https://www.google.com/maps?q=${lat},${lng}`;
 
-                const message = `🚨 EMERGENCY SOS from LIFELINE! 🚨
+                    const fullMessage = `🚨 EMERGENCY SOS - LIFELINE 🚨\n\nPatient: ${name}\nContact: ${contactPhone}\nGPS Coordinates: ${loc}\nGoogle Maps: ${mapsLink}\nTime: ${new Date().toLocaleTimeString()} ${new Date().toLocaleDateString()}\n\nI need immediate medical assistance. Please send an ambulance or emergency help (112 / 108).`;
 
-Name: ${name}
-Contact: ${contactPhone}
-Location: ${mapsLink}
-Time: ${new Date().toLocaleString()}
-
-I need immediate medical assistance. Please send help. Call 112/108.`;
-
-                showSOSModal(contactName, contactPhone, loc, message, mapsLink);
-
-                if (contactPhone && contactPhone !== "112") {
-                    try {
-                        const smsLink = `sms:${encodeURIComponent(contactPhone)}?body=${encodeURIComponent(message)}`;
-                        window.open(smsLink, '_blank');
-                        toast("📱 SMS sent to emergency contact!");
-                    } catch (e) {
-                        console.error("[LIFELINE] SMS error:", e);
-                    }
-                }
-
-                setTimeout(() => {
-                    const callNow = confirm(`🚨 SOS Sent to ${contactName || 'Emergency Contact'}!\n\nDo you want to call 112 now?`);
-                    if (callNow) {
-                        window.open('tel:112', '_blank');
-                    }
-                }, 500);
-            },
-            (error) => {
-                console.error("[LIFELINE] GPS error:", error);
-                const loc = state.lastGps || "Location unavailable";
-
-                const message = `🚨 EMERGENCY SOS from LIFELINE! 🚨
-
-Name: ${name}
-Contact: ${contactPhone}
-Location: ${loc}
-Time: ${new Date().toLocaleString()}
-
-I need immediate medical assistance. Please send help. Call 112/108.`;
-
-                if (contactPhone && contactPhone !== "112") {
-                    try {
-                        const smsLink = `sms:${encodeURIComponent(contactPhone)}?body=${encodeURIComponent(message)}`;
-                        window.open(smsLink, '_blank');
-                    } catch (e) {
-                        console.error("[LIFELINE] SMS error:", e);
-                    }
-                }
-
-                showSOSModal(contactName, contactPhone, loc, message, null);
-                toast("⚠️ SOS sent (location approximate)");
-            },
-            { enableHighAccuracy: true, timeout: 10000 }
-        );
+                    showSOSModal(contactName, contactPhone, loc, fullMessage, mapsLink);
+                    toast("📍 GPS Location acquired and attached to SOS!");
+                },
+                (error) => {
+                    console.warn("[LIFELINE] GPS error:", error);
+                    const fallbackLoc = state.lastGps || "GPS unavailable / permission needed";
+                    const fallbackMsg = `🚨 EMERGENCY SOS - LIFELINE 🚨\n\nPatient: ${name}\nContact: ${contactPhone}\nLocation: ${fallbackLoc}\nTime: ${new Date().toLocaleTimeString()}\n\nI need immediate medical assistance. Please call 112 / 108.`;
+                    showSOSModal(contactName, contactPhone, fallbackLoc, fallbackMsg, null);
+                },
+                { enableHighAccuracy: true, timeout: 8000, maximumAge: 30000 }
+            );
+        }
     }
 
     function showSOSModal(contactName, contactPhone, location, message, mapsLink) {
@@ -1056,143 +1020,140 @@ I need immediate medical assistance. Please send help. Call 112/108.`;
             modal.className = "modal";
             modal.innerHTML = `
                 <div class="modal-backdrop"></div>
-                <div class="modal-card" style="border: 3px solid #d92d3d; max-width: 500px;">
-                    <div class="modal-header" style="border-bottom: 2px solid #d92d3d;">
+                <div class="modal-card" style="border: 3px solid #d92d3d; max-width: 520px; border-radius: 16px; overflow: hidden; box-shadow: 0 20px 40px rgba(217,45,61,0.25);">
+                    <div class="modal-header" style="background: #fff5f5; border-bottom: 2px solid #f8d7da; padding: 16px 20px;">
                         <div>
-                            <span class="eyebrow" style="color: #d92d3d;">🚨 EMERGENCY SOS</span>
-                            <h2 style="color: #d92d3d;">Immediate Help Needed</h2>
+                            <span class="eyebrow" style="color: #d92d3d; font-weight: 700; font-size: 11px;">🚨 EMERGENCY SOS DISPATCH</span>
+                            <h2 style="color: #d92d3d; margin: 2px 0 0 0; font-size: 20px;">Immediate Help Needed</h2>
                         </div>
-                        <button id="close-sos-modal" class="modal-close" type="button">×</button>
+                        <button id="close-sos-modal" class="modal-close" type="button" style="font-size: 24px; cursor: pointer;">×</button>
                     </div>
-                    <div style="padding: 10px 0;">
-                        <p style="font-weight: bold; color: #d92d3d;">⚠️ Your location has been shared</p>
-                        <p style="font-size: 13px; color: #627169;"><strong>Contact:</strong> <span id="sos-contact-name"></span> (<span id="sos-contact-phone"></span>)</p>
-                        <p style="font-size: 13px; color: #627169;"><strong>Location:</strong> <span id="sos-location"></span></p>
-                        <div style="margin-top: 8px; padding: 10px; background: #e8f8ef; border-radius: 8px;">
-                            <a id="sos-location-link" href="#" target="_blank" style="color: #0a8f55; font-weight: 600; text-decoration: underline; display: flex; align-items: center; gap: 8px;">
+                    <div style="padding: 16px 20px;">
+                        <p style="font-weight: 600; color: #d92d3d; margin-top: 0;">⚠️ Live GPS Location is accessible for emergency dispatch</p>
+                        <p style="font-size: 13px; color: #444; margin: 4px 0;"><strong>Emergency Contact:</strong> <span id="sos-contact-name"></span> (<span id="sos-contact-phone"></span>)</p>
+                        <p style="font-size: 13px; color: #444; margin: 4px 0;"><strong>Coordinates:</strong> <span id="sos-location" style="font-family: monospace; font-weight: bold; color: #0a8f55;"></span></p>
+                        
+                        <div style="margin-top: 10px; padding: 12px; background: #e8f8ef; border: 1px solid #c3e6cb; border-radius: 8px;">
+                            <a id="sos-location-link" href="#" target="_blank" style="color: #0a8f55; font-weight: 700; text-decoration: underline; display: flex; align-items: center; gap: 8px;">
                                 📍 Open Location in Google Maps
                             </a>
                         </div>
+                        
                         <div style="margin-top: 10px;">
-                            <p style="font-size: 11px; color: #627169; background: #f5f5f5; padding: 8px; border-radius: 6px; word-wrap: break-word; max-height: 120px; overflow-y: auto;" id="sos-message"></p>
+                            <small style="font-weight: 600; color: #666;">SOS MESSAGE (Pre-filled with GPS coordinates):</small>
+                            <p style="font-size: 11px; color: #333; background: #f8f9fa; border: 1px solid #e9ecef; padding: 10px; border-radius: 6px; word-wrap: break-word; max-height: 90px; overflow-y: auto; margin: 4px 0 0 0; white-space: pre-line;" id="sos-message"></p>
                         </div>
                     </div>
-                    <div style="display: flex; gap: 10px; flex-wrap: wrap; padding: 10px 0;">
-                        <a href="tel:112" class="btn btn-danger" style="flex: 1; min-width: 60px; font-size: 12px; padding: 10px; border:none; border-radius:12px; background:linear-gradient(135deg,#d92d3d,#b71c1c);color:white;text-align:center;text-decoration:none;">📞 112</a>
-                        <a href="tel:108" class="btn btn-danger" style="flex: 1; min-width: 60px; font-size: 12px; padding: 10px; border:none; border-radius:12px; background:linear-gradient(135deg,#d92d3d,#b71c1c);color:white;text-align:center;text-decoration:none;">📞 108</a>
-                        <a id="sos-sms-link" href="#" class="btn btn-secondary" style="flex: 1; min-width: 60px; font-size: 12px; padding: 10px; text-align:center;text-decoration:none;border:none;border-radius:12px;background:#e8f8ef;color:#0a8f55;">📱 SMS</a>
-                        <a id="sos-whatsapp-link" href="#" target="_blank" class="btn" style="flex: 1; min-width: 60px; font-size: 12px; padding: 10px; background: #25D366; color: white; border: none; border-radius: 12px; text-align: center; text-decoration: none;">💬 WhatsApp</a>
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap; padding: 12px 20px; background: #fff5f5; border-top: 1px solid #f8d7da;">
+                        <a href="tel:112" class="btn btn-danger" style="flex: 1; min-width: 100px; font-size: 13px; font-weight: 700; padding: 10px 12px; border:none; border-radius:10px; background:linear-gradient(135deg,#d92d3d,#b71c1c); color:white; text-align:center; text-decoration:none; display:inline-flex; align-items:center; justify-content:center; gap:4px;">📞 Call 112</a>
+                        <a href="tel:108" class="btn btn-danger" style="flex: 1; min-width: 100px; font-size: 13px; font-weight: 700; padding: 10px 12px; border:none; border-radius:10px; background:linear-gradient(135deg,#d92d3d,#b71c1c); color:white; text-align:center; text-decoration:none; display:inline-flex; align-items:center; justify-content:center; gap:4px;">📞 Call 108</a>
+                        <a id="sos-sms-112-link" href="#" class="btn" style="flex: 1; min-width: 90px; font-size: 12px; font-weight: 600; padding: 10px 10px; text-align:center; text-decoration:none; border:1px solid #b8daff; border-radius:10px; background:#e7f1ff; color:#004085; display:inline-flex; align-items:center; justify-content:center; gap:4px;">📱 SMS 112</a>
+                        <a id="sos-whatsapp-link" href="#" target="_blank" class="btn" style="flex: 1; min-width: 100px; font-size: 12px; font-weight: 600; padding: 10px 10px; background: #25D366; color: white; border: none; border-radius: 10px; text-align: center; text-decoration: none; display:inline-flex; align-items:center; justify-content:center; gap:4px;">💬 WhatsApp</a>
                     </div>
-                    <div style="display: flex; gap: 10px; padding-top: 10px; border-top: 1px solid #dce7e1;">
-                        <button id="sos-get-location" class="btn btn-light" style="flex: 1; border:none; border-radius:12px; padding:10px; background:#f5f5f5; cursor:pointer;">📍 Refresh Location</button>
-                        <button id="close-sos-modal-btn" class="btn btn-light" style="flex: 1; border:none; border-radius:12px; padding:10px; background:#f5f5f5; cursor:pointer;">Close</button>
+                    <div style="display: flex; gap: 10px; padding: 12px 20px; background: #fafafa; border-top: 1px solid #eee;">
+                        <button id="sos-copy-btn" class="btn btn-light" type="button" style="flex: 1; border: 1px solid #ccc; border-radius:10px; padding:8px 12px; font-size: 12px; cursor:pointer;">📋 Copy GPS Details</button>
+                        <button id="sos-get-location" class="btn btn-light" type="button" style="flex: 1; border: 1px solid #ccc; border-radius:10px; padding:8px 12px; font-size: 12px; cursor:pointer;">📍 Refresh GPS</button>
+                        <button id="close-sos-modal-btn" class="btn btn-light" type="button" style="border: 1px solid #ccc; border-radius:10px; padding:8px 16px; font-size: 12px; cursor:pointer;">Close</button>
                     </div>
                 </div>
             `;
             document.body.appendChild(modal);
+
+            document.getElementById("close-sos-modal")?.addEventListener("click", () => modal.classList.add("hidden"));
+            document.getElementById("close-sos-modal-btn")?.addEventListener("click", () => modal.classList.add("hidden"));
+            modal.querySelector(".modal-backdrop")?.addEventListener("click", () => modal.classList.add("hidden"));
         }
 
-        const cleanPhone = contactPhone.replace(/[^0-9]/g, '');
+        const cleanPhone = (contactPhone || "").replace(/[^0-9]/g, '');
 
         const contactNameEl = document.getElementById("sos-contact-name");
         const contactPhoneEl = document.getElementById("sos-contact-phone");
         const locationEl = document.getElementById("sos-location");
         const messageEl = document.getElementById("sos-message");
-        const smsLink = document.getElementById("sos-sms-link");
+        const sms112Link = document.getElementById("sos-sms-112-link");
         const whatsappLink = document.getElementById("sos-whatsapp-link");
         const locationLink = document.getElementById("sos-location-link");
+        const copyBtn = document.getElementById("sos-copy-btn");
 
         if (contactNameEl) contactNameEl.textContent = contactName || "Emergency Contact";
         if (contactPhoneEl) contactPhoneEl.textContent = contactPhone || "112";
-        if (locationEl) locationEl.textContent = location || "Location unknown";
-        if (messageEl) messageEl.textContent = message || "SOS sent";
+        if (locationEl) locationEl.textContent = location || "Acquiring GPS...";
+        if (messageEl) messageEl.textContent = message || "LIFELINE Emergency SOS";
 
-        if (locationLink && mapsLink) {
-            locationLink.href = mapsLink;
-            locationLink.innerHTML = `📍 Open Location in Google Maps<br><small style="font-weight:normal;font-size:11px;color:#627169;">${location}</small>`;
-            locationLink.style.display = 'flex';
-            locationLink.style.flexDirection = 'column';
-            locationLink.style.alignItems = 'flex-start';
-            locationLink.style.gap = '2px';
-        } else if (locationLink && location && location !== "Location unknown") {
-            const coords = location.replace(/\s/g, '');
-            const fallbackLink = `https://www.google.com/maps?q=${coords}`;
-            locationLink.href = fallbackLink;
-            locationLink.innerHTML = `📍 Open Location in Google Maps<br><small style="font-weight:normal;font-size:11px;color:#627169;">${location}</small>`;
-        } else if (locationLink) {
-            locationLink.innerHTML = `📍 Location: ${location || 'Not available'}`;
-            locationLink.href = '#';
-            locationLink.style.cursor = 'default';
-            locationLink.style.textDecoration = 'none';
+        if (locationLink) {
+            if (mapsLink) {
+                locationLink.href = mapsLink;
+                locationLink.innerHTML = `📍 Open Live Location in Google Maps<br><small style="font-weight:normal;font-size:11px;color:#0a8f55;">${location}</small>`;
+                locationLink.style.cursor = 'pointer';
+            } else {
+                locationLink.href = '#';
+                locationLink.innerHTML = `📍 Location: ${location}`;
+            }
         }
 
-        if (smsLink && message) {
-            smsLink.href = `sms:${encodeURIComponent(contactPhone)}?body=${encodeURIComponent(message)}`;
+        if (sms112Link) {
+            sms112Link.href = `sms:112?body=${encodeURIComponent(message)}`;
         }
 
-        if (whatsappLink && message) {
-            const waNumber = cleanPhone && cleanPhone.length > 5 ? cleanPhone : '91112';
-            whatsappLink.href = `https://wa.me/${waNumber}?text=${encodeURIComponent(message)}`;
-            whatsappLink.target = '_blank';
-            whatsappLink.textContent = '💬 WhatsApp';
+        if (whatsappLink) {
+            const waNumber = cleanPhone && cleanPhone.length > 5 ? cleanPhone : '';
+            whatsappLink.href = waNumber ?
+                `https://wa.me/${waNumber}?text=${encodeURIComponent(message)}` :
+                `https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`;
+        }
+
+        if (copyBtn) {
+            copyBtn.onclick = () => {
+                const textToCopy = `${message}\nGPS: ${location}\nMaps: ${mapsLink || location}`;
+                navigator.clipboard?.writeText(textToCopy).then(() => {
+                    toast("📋 Emergency details copied to clipboard!");
+                }).catch(() => {
+                    toast("📍 Coordinates: " + location);
+                });
+            };
         }
 
         modal.classList.remove("hidden");
 
-        document.getElementById("close-sos-modal")?.addEventListener("click", () => {
-            modal.classList.add("hidden");
-        });
-        document.getElementById("close-sos-modal-btn")?.addEventListener("click", () => {
-            modal.classList.add("hidden");
-        });
-
-        document.getElementById("sos-get-location")?.addEventListener("click", async () => {
-            try {
-                toast("📍 Getting fresh location...");
-                const pos = await getCurrentPosition();
-                const lat = pos.coords.latitude.toFixed(6);
-                const lng = pos.coords.longitude.toFixed(6);
-                const newLocation = `${lat}, ${lng}`;
-                const newMapsLink = `https://www.google.com/maps?q=${lat},${lng}`;
-                state.lastGps = newLocation;
-
-                if (locationEl) locationEl.textContent = newLocation;
-
-                const newMessage = `🚨 EMERGENCY SOS from LIFELINE! 🚨
-
-Name: ${profileName()}
-Contact: ${contactPhone}
-Location: ${newMapsLink}
-Time: ${new Date().toLocaleString()}
-
-I need immediate medical assistance. Please send help. Call 112/108.`;
-
-                if (messageEl) messageEl.textContent = newMessage;
-                if (smsLink) {
-                    smsLink.href = `sms:${encodeURIComponent(contactPhone)}?body=${encodeURIComponent(newMessage)}`;
+        const refreshBtn = document.getElementById("sos-get-location");
+        if (refreshBtn) {
+            refreshBtn.onclick = () => {
+                toast("📍 Refreshing GPS location...");
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(
+                        pos => {
+                            const lat = pos.coords.latitude.toFixed(6);
+                            const lng = pos.coords.longitude.toFixed(6);
+                            const newLoc = `${lat}, ${lng}`;
+                            const newMapsLink = `https://www.google.com/maps?q=${lat},${lng}`;
+                            state.lastGps = newLoc;
+                            const newMsg = `🚨 EMERGENCY SOS - LIFELINE 🚨\n\nPatient: ${profileName()}\nContact: ${contactPhone}\nGPS Coordinates: ${newLoc}\nGoogle Maps: ${newMapsLink}\nTime: ${new Date().toLocaleTimeString()}\n\nI need immediate medical assistance. Please send an ambulance (112/108).`;
+                            showSOSModal(contactName, contactPhone, newLoc, newMsg, newMapsLink);
+                            toast("✅ Fresh GPS location acquired!");
+                        },
+                        err => {
+                            toast("⚠️ GPS access unavailable");
+                        },
+                        { enableHighAccuracy: true, timeout: 6000 }
+                    );
                 }
-                if (whatsappLink) {
-                    const waNumber = cleanPhone && cleanPhone.length > 5 ? cleanPhone : '91112';
-                    whatsappLink.href = `https://wa.me/${waNumber}?text=${encodeURIComponent(newMessage)}`;
-                }
-                if (locationLink) {
-                    locationLink.href = newMapsLink;
-                    locationLink.innerHTML = `📍 Open Location in Google Maps<br><small style="font-weight:normal;font-size:11px;color:#627169;">${newLocation}</small>`;
-                }
-
-                toast("✅ Location updated");
-            } catch (error) {
-                toast("⚠️ Could not get location");
-                console.error("[LIFELINE] Location refresh error:", error);
-            }
-        });
+            };
+        }
     }
+
+    // Expose globally for inline buttons
+    window.LifelineTriggerSOS = triggerSOS;
 
     function acquireGPS() {
         if (!navigator.geolocation) return;
         navigator.geolocation.getCurrentPosition(
             position => {
-                state.lastGps = `${position.coords.latitude.toFixed(5)}, ${position.coords.longitude.toFixed(5)}`;
+                state.lastGps = `${position.coords.latitude.toFixed(6)}, ${position.coords.longitude.toFixed(6)}`;
+            },
+            () => {},
+            { enableHighAccuracy: true, timeout: 5000 }
+        );
+    }
                 console.log("[LIFELINE] GPS acquired:", state.lastGps);
             },
             () => {},
