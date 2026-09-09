@@ -1483,16 +1483,31 @@ window.LifelineTriage = (() => {
     function matchKeywordProtocol(complaint) {
         if (!complaint || !window.LifelineTriageData?.protocols) return null;
         const text = complaint.toLowerCase();
-        for (const [pid, proto] of Object.entries(window.LifelineTriageData.protocols)) {
-            const keywords = proto.trigger_keywords || [];
-            for (const kw of keywords) {
-                if (text.includes(kw.toLowerCase())) return pid;
+
+        const keywordMap = {
+            chest_pain: ["chest", "heart", "angina", "seena", "dard", "cardiac", "palpitation", "left arm", "myocardial", "infarct", "rib", "squeezing chest"],
+            stroke: ["stroke", "lakwa", "paralysis", "face droop", "slurred", "speech", "arm weak", "numb", "mouth twist", "fast", "neurolog"],
+            breathing_dehydration: ["breath", "saans", "asthma", "wheez", "chok", "suffocat", "gasp", "dehydrat", "thirst", "dry mouth", "sunstroke", "heat stroke", "heat exhaust"],
+            bleeding: ["blood", "bleed", "khoon", "cut", "wound", "hemorrhage", "gash", "stab", "trauma", "accident", "fall", "fracture", "broken bone", "open wound", "injury"],
+            headache: ["headache", "sir dard", "migraine", "thunderclap", "head pain", "severe head", "vision loss"],
+            unconsciousness_adult: ["unconscious", "behosh", "faint", "blackout", "collaps", "passed out", "seizure", "fit", "fits", "convulsion", "epilepsy", "unresponsive"],
+            pregnancy: ["pregnant", "pregnancy", "garbhavati", "labor", "delivery", "contraction", "water broke", "spotting", "fetal", "baby moving"],
+            menstrual: ["menstru", "period", "mahavari", "heavy flow", "pad soaked", "cramp", "menses"],
+            general: ["fever", "bukhaar", "vomit", "ulti", "loose motion", "dast", "diarrhea", "nausea", "stomach", "pet dard", "allergy", "rash", "infection", "weakness"]
+        };
+
+        for (const [protoId, kws] of Object.entries(keywordMap)) {
+            for (const kw of kws) {
+                if (text.includes(kw)) {
+                    if (window.LifelineTriageData.protocols[protoId]) return protoId;
+                }
             }
         }
         return null;
     }
 
     async function generateAITriageQuestions(complaint) {
+        if (!navigator.onLine) throw new Error("Offline");
         const groqKey = window.LifelineConfig?.GROQ_API_KEY || (window.LifelineConfig?.GROQ_KEY_ENC ? atob(window.LifelineConfig.GROQ_KEY_ENC) : "");
         if (!groqKey) throw new Error("Groq API key not configured");
 
@@ -1506,7 +1521,7 @@ STRICT JSON OUTPUT ONLY:
   "questions": [
     {
       "id": "q1",
-      "text": "Question evaluating immediate breathing or danger signs?",
+      "text": "Question evaluating immediate danger signs?",
       "options": [
         {"id": "o1", "label": "Severe danger sign (e.g. trouble breathing, fainting, severe pain)", "severity": "RED"},
         {"id": "o2", "label": "Moderate symptom (e.g. localized discomfort, mild nausea)", "severity": "YELLOW"},
@@ -1542,8 +1557,12 @@ STRICT JSON OUTPUT ONLY:
         const models = ["openai/gpt-oss-120b", "openai/gpt-oss-20b", "qwen/qwen3.6-27b", "qwen/qwen3.8-27b"];
         for (const model of models) {
             try {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 2500);
+
                 const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
                     method: "POST",
+                    signal: controller.signal,
                     headers: {
                         "Content-Type": "application/json",
                         "Authorization": `Bearer ${groqKey}`
@@ -1558,6 +1577,8 @@ STRICT JSON OUTPUT ONLY:
                         max_tokens: 1024
                     })
                 });
+                clearTimeout(timeoutId);
+
                 if (res.ok) {
                     const data = await res.json();
                     let text = data.choices?.[0]?.message?.content || "";
@@ -1568,7 +1589,7 @@ STRICT JSON OUTPUT ONLY:
                     if (json.questions && json.questions.length) return json;
                 }
             } catch (e) {
-                console.warn("[LifelineTriage] Groq model fallback:", e);
+                console.warn("[LifelineTriage] AI Triage fetch fallback:", e);
             }
         }
         throw new Error("Unable to generate AI questions");
@@ -1600,7 +1621,7 @@ STRICT JSON OUTPUT ONLY:
             return;
         }
 
-        if (complaint && complaint.length > 2) {
+        if (complaint && complaint.length > 2 && navigator.onLine) {
             if ($("triage-question-text")) $("triage-question-text").textContent = "Formulating clinical assessment check...";
             if ($("badge-proto-name")) $("badge-proto-name").textContent = "AI Clinical Triage";
             if ($("question-progress")) $("question-progress").textContent = "Preparing...";
@@ -1756,12 +1777,22 @@ STRICT JSON OUTPUT ONLY:
                 optionLabel: opt ? opt.label : selected.value
             });
 
-            if (nextNode === "SWITCH_TO_CHEST") {
-                start("", "chest_pain");
-                return;
+            if (nextNode && nextNode.startsWith("SWITCH_TO_")) {
+                let target = nextNode.replace("SWITCH_TO_", "").toLowerCase();
+                if (target === "chest") target = "chest_pain";
+                if (target === "breathing") target = "breathing_dehydration";
+                if (target === "unconscious" || target === "unconsciousness") target = "unconsciousness_adult";
+                if (target === "bleed") target = "bleeding";
+                if (target === "menstruation") target = "menstrual";
+                const protos = window.LifelineTriageData?.protocols || {};
+                if (protos[target]) {
+                    start("", target);
+                    return;
+                }
             }
 
-            const isOutcome = !nextNode || nextNode.isupper() || nextNode.startsWith("SWITCH_") || !proto.questions.some(item => item.id === nextNode);
+            const isNextQuestion = proto.questions && proto.questions.some(item => item.id === nextNode);
+            const isOutcome = !nextNode || !isNextQuestion;
 
             if (isOutcome) {
                 compileAndRenderProtocolResult(nextNode || "GEN_YELLOW_DOCTOR");
